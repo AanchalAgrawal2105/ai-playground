@@ -1,0 +1,50 @@
+# Auto-label PRs based on changed files
+
+documentation:
+  - '**/*.md'
+  - 'docs/**/*'
+  - 'agents/*/docs/**/*'
+
+tests:
+  - 'tests/**/*'
+  - 'agents/*/tests/**/*'
+  - '**/test_*.py'
+  - '**/*_test.py'
+
+ci/cd:
+  - '.github/**/*'
+  - '**/.github/**/*'
+
+deployment:
+  - '**/deploy/**/*'
+  - '**/Dockerfile'
+  - '**/docker-compose*.yml'
+  - '**/deploy.sh'
+  - '**/kubernetes/**/*'
+  - '**/systemd/**/*'
+
+dependencies:
+  - '**/requirements*.txt'
+  - '**/pyproject.toml'
+  - '**/setup.py'
+
+core:
+  - 'agents/airflow_intelligence/src/core/**/*'
+
+tools:
+  - 'agents/airflow_intelligence/src/tools/**/*'
+
+monitoring:
+  - 'agents/airflow_intelligence/src/monitoring/**/*'
+
+cli:
+  - 'agents/airflow_intelligence/src/cli/**/*'
+
+configuration:
+  - '**/.env*'
+  - '**/config*.py'
+  - '**/*.yml'
+  - '**/*.yaml'
+
+examples:
+  - '**/examples/**/*'

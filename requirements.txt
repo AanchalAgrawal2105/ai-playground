@@ -1,7 +1,0 @@
-fastmcp==2.14.4
-python-dotenv==1.2.1
-sqlalchemy
-psycopg2-binary
-pandas
-boto3
-slack-sdk

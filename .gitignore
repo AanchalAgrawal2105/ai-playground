@@ -22,8 +22,11 @@ wheels/
 
 # Virtual Environment
 venv/
+.venv/
 env/
 ENV/
+env.bak/
+venv.bak/
 
 # Environment Variables
 .env
@@ -40,3 +43,41 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+coverage.xml
+*.cover
+
+# Agent Memory (runtime data — never commit)
+.agent_memory/
+*/.agent_memory/
+agents/**/.agent_memory/
+
+# Temporary files
+*.tmp
+*.bak
+*~
+
+# Documentation builds
+docs/_build/
+site/
+
+# MyPy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+*.ipynb
+
+# SQLite databases (if used for testing)
+*.db
+*.sqlite3
+
+# Claude Code
+.claude/

@@ -1,0 +1,32 @@
+# Code owners for automated review requests
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owner for everything in the repo
+# Replace with your GitHub username or team
+* @YOUR_GITHUB_USERNAME
+
+# Airflow Intelligence Agent
+/agents/airflow_intelligence/ @YOUR_GITHUB_USERNAME
+
+# CI/CD and workflows
+/.github/ @YOUR_GITHUB_USERNAME
+
+# Documentation
+*.md @YOUR_GITHUB_USERNAME
+/docs/ @YOUR_GITHUB_USERNAME
+/agents/*/docs/ @YOUR_GITHUB_USERNAME
+
+# Deployment configurations
+/agents/*/deploy/ @YOUR_GITHUB_USERNAME
+**/Dockerfile @YOUR_GITHUB_USERNAME
+**/docker-compose*.yml @YOUR_GITHUB_USERNAME
+**/kubernetes/ @YOUR_GITHUB_USERNAME
+
+# Security-sensitive files
+.env.template @YOUR_GITHUB_USERNAME
+**/requirements*.txt @YOUR_GITHUB_USERNAME
+/.github/workflows/ @YOUR_GITHUB_USERNAME
+
+# Tests
+/tests/ @YOUR_GITHUB_USERNAME
+/agents/*/tests/ @YOUR_GITHUB_USERNAME
