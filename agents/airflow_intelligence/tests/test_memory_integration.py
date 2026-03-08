@@ -14,7 +14,7 @@ import shutil
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from agents.airflow_intelligence.src.core.memory import AgentMemory
+from agents.airflow_intelligence import AgentMemory
 
 
 def get_temp_memory():
@@ -162,7 +162,7 @@ def test_agent_integration():
     print()
 
     try:
-        from agents.airflow_intelligence.src.core.agent import create_agent
+        from agents.airflow_intelligence import create_agent
 
         print("1️⃣  Creating agent...")
         agent = create_agent(

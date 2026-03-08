@@ -28,6 +28,7 @@ from .src.core import (
     AgentMemory,
     create_orchestrator,
 )
+from .src.core.agent import create_agent
 from .src.tools import DatabaseTools, SlackTools, AnalysisTools, ToolRegistry
 from .src.monitoring import ProactiveMonitor, run_proactive_monitor
 from .src.utils import SlackReportFormatter
@@ -40,6 +41,7 @@ __all__ = [
     "AgentOrchestrator",
     "AgentMemory",
     "create_orchestrator",
+    "create_agent",
     # Tools
     "DatabaseTools",
     "SlackTools",
