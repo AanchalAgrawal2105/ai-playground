@@ -9,6 +9,7 @@ to send professional, well-structured reports to Slack.
 import os
 from agents.airflow_intelligence.tools import SlackTools
 
+
 def send_beautiful_report():
     """
     Example: Send a beautifully formatted health report to Slack.
@@ -21,77 +22,91 @@ def send_beautiful_report():
         return
 
     slack_tools = SlackTools(
-        slack_token=slack_token,
-        default_channel="#airflow-monitoring"
+        slack_token=slack_token, default_channel="#airflow-monitoring"
     )
 
     # Sample data for the report
     critical_issues = [
         {
-            'dag_id': 'pricing-service-curated.pipeline-product.product.curated',
-            'duration_seconds': 275.2,
-            'baseline_p90': 82.2,
-            'deviation_factor': 3.35,
-            'root_cause': 'Spark job execution time increased from ~30s to 212s',
-            'impact': 'Critical pricing data delays'
+            "dag_id": "pricing-service-curated.pipeline-product.product.curated",
+            "duration_seconds": 275.2,
+            "baseline_p90": 82.2,
+            "deviation_factor": 3.35,
+            "root_cause": "Spark job execution time increased from ~30s to 212s",
+            "impact": "Critical pricing data delays",
         },
         {
-            'dag_id': 'regional-pricing-curated.pipeline-product-price.product_price.curated',
-            'duration_seconds': 243.7,
-            'baseline_p90': 82.0,
-            'deviation_factor': 2.97,
-            'root_cause': 'Spark job execution time increased from ~30s to 182s',
-            'impact': 'Regional pricing updates delayed'
-        }
+            "dag_id": "regional-pricing-curated.pipeline-product-price.product_price.curated",
+            "duration_seconds": 243.7,
+            "baseline_p90": 82.0,
+            "deviation_factor": 2.97,
+            "root_cause": "Spark job execution time increased from ~30s to 182s",
+            "impact": "Regional pricing updates delayed",
+        },
     ]
 
     failures = [
-        {'dag_id': 'ops-dap-bi-enriched.pipeline-production_assets.dashboard', 'duration_hours': 1.2},
-        {'dag_id': 'ops-dap-bi-enriched.pipeline-production_errors.errors', 'duration_hours': 0.8},
-        {'dag_id': 'ops-dap-bi-enriched.pipeline-br-metrics.metrics', 'duration_hours': 0.5},
-        {'dag_id': 'loyalty-enriched.pipeline-crm-comms-savings.savings', 'duration_hours': 1.5},
-        {'dag_id': 'loyalty-enriched.pipeline-customer-data.customers', 'duration_hours': 0.9},
-        {'dag_id': 'loyalty-enriched.pipeline-rewards.rewards', 'duration_hours': 1.1},
+        {
+            "dag_id": "ops-dap-bi-enriched.pipeline-production_assets.dashboard",
+            "duration_hours": 1.2,
+        },
+        {
+            "dag_id": "ops-dap-bi-enriched.pipeline-production_errors.errors",
+            "duration_hours": 0.8,
+        },
+        {
+            "dag_id": "ops-dap-bi-enriched.pipeline-br-metrics.metrics",
+            "duration_hours": 0.5,
+        },
+        {
+            "dag_id": "loyalty-enriched.pipeline-crm-comms-savings.savings",
+            "duration_hours": 1.5,
+        },
+        {
+            "dag_id": "loyalty-enriched.pipeline-customer-data.customers",
+            "duration_hours": 0.9,
+        },
+        {"dag_id": "loyalty-enriched.pipeline-rewards.rewards", "duration_hours": 1.1},
     ]
 
     recommendations = [
         {
-            'priority': 'URGENT',
-            'action': 'Investigate EMR EKS cluster resource allocation for pricing pipelines'
+            "priority": "URGENT",
+            "action": "Investigate EMR EKS cluster resource allocation for pricing pipelines",
         },
         {
-            'priority': 'HIGH',
-            'action': 'Check ops-dap-bi-enriched infrastructure dependencies'
+            "priority": "HIGH",
+            "action": "Check ops-dap-bi-enriched infrastructure dependencies",
         },
         {
-            'priority': 'MEDIUM',
-            'action': 'Review loyalty pipeline data sources and connections'
+            "priority": "MEDIUM",
+            "action": "Review loyalty pipeline data sources and connections",
         },
         {
-            'priority': 'MEDIUM',
-            'action': 'Set up enhanced alerting for pricing pipeline performance'
-        }
+            "priority": "MEDIUM",
+            "action": "Set up enhanced alerting for pricing pipeline performance",
+        },
     ]
 
     consistently_failing_dags = [
         {
-            'dag_id': 'loyalty-enriched.pipeline-crm-comms-savings',
-            'failure_count': 6,
-            'consecutive_failures': 4,
-            'last_success_date': '2026-03-04T10:30:00Z'
+            "dag_id": "loyalty-enriched.pipeline-crm-comms-savings",
+            "failure_count": 6,
+            "consecutive_failures": 4,
+            "last_success_date": "2026-03-04T10:30:00Z",
         },
         {
-            'dag_id': 'ops-dap-bi-enriched.pipeline-production_assets',
-            'failure_count': 5,
-            'consecutive_failures': 3,
-            'last_success_date': '2026-03-03T15:20:00Z'
+            "dag_id": "ops-dap-bi-enriched.pipeline-production_assets",
+            "failure_count": 5,
+            "consecutive_failures": 3,
+            "last_success_date": "2026-03-03T15:20:00Z",
         },
         {
-            'dag_id': 'global-errors-enriched.pipeline-main-cc-errors',
-            'failure_count': 3,
-            'consecutive_failures': 3,
-            'last_success_date': 'Never'
-        }
+            "dag_id": "global-errors-enriched.pipeline-main-cc-errors",
+            "failure_count": 3,
+            "consecutive_failures": 3,
+            "last_success_date": "Never",
+        },
     ]
 
     # Send the beautifully formatted report
@@ -105,10 +120,10 @@ def send_beautiful_report():
         anomalies=critical_issues,  # Same as critical_issues in this example
         recommendations=recommendations,
         consistently_failing_dags=consistently_failing_dags,
-        confidence_level="High"
+        confidence_level="High",
     )
 
-    if result['success']:
+    if result["success"]:
         print(f"✅ {result['message']}")
         print(f"   Channel: {result['channel']}")
         print(f"   Timestamp: {result['timestamp']}")
@@ -128,8 +143,7 @@ def send_simple_alert():
         return
 
     slack_tools = SlackTools(
-        slack_token=slack_token,
-        default_channel="#airflow-monitoring"
+        slack_token=slack_token, default_channel="#airflow-monitoring"
     )
 
     print("📤 Sending formatted alert to Slack...")
@@ -149,11 +163,11 @@ def send_simple_alert():
             "Pipeline": "pricing-service-curated",
             "Duration": "275.2 seconds",
             "Baseline": "82.2 seconds",
-            "Deviation": "3.35x"
-        }
+            "Deviation": "3.35x",
+        },
     )
 
-    if result['success']:
+    if result["success"]:
         print(f"✅ {result['message']}")
         print(f"   Channel: {result['channel']}")
         print(f"   Timestamp: {result['timestamp']}")

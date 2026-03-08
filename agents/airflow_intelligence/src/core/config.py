@@ -96,6 +96,7 @@ class AgentConfig:
             KeyError: If required environment variable is missing
             ValueError: If value cannot be converted to expected type
         """
+
         # Helper function to get required env var
         def get_required(key: str) -> str:
             value = os.getenv(key)
@@ -117,31 +118,26 @@ class AgentConfig:
         return cls(
             # Database - Required
             airflow_db_url=get_required("AIRFLOW_DB_URL"),
-
             # AWS Bedrock - Required
             aws_region=get_required("AWS_REGION"),
             model_id=get_required("MODEL_ID"),
             aws_access_key=get_optional("AWS_ACCESS_KEY_ID"),
             aws_secret_key=get_optional("AWS_SECRET_ACCESS_KEY"),
-
             # Slack - Optional token, required config
             slack_token=get_optional("SLACK_BOT_TOKEN"),
             slack_channel=get_required("SLACK_CHANNEL"),
             slack_username=get_required("SLACK_USERNAME"),
             enable_slack=parse_bool(get_required("ENABLE_SLACK_NOTIFICATIONS")),
-
             # Agent Behavior - Required
             temperature=float(get_required("AGENT_TEMPERATURE")),
             max_tokens=int(get_required("AGENT_MAX_TOKENS")),
             max_iterations=int(get_required("AGENT_MAX_ITERATIONS")),
-
             # Monitoring Configuration - Required
             window_hours=int(get_required("WINDOW_HOURS")),
             baseline_days=int(get_required("BASELINE_DAYS")),
             min_history=int(get_required("MIN_HISTORY")),
             anomaly_multiplier=float(get_required("ANOMALY_MULTIPLIER")),
             stale_dag_threshold_days=int(get_required("STALE_DAG_THRESHOLD_DAYS")),
-
             # Performance - Required
             query_timeout=int(get_required("QUERY_TIMEOUT")),
             max_results=int(get_required("MAX_RESULTS")),

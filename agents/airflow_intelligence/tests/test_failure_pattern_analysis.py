@@ -9,18 +9,26 @@ It simulates different failure scenarios and shows how the agent detects pattern
 import sys
 from pathlib import Path
 from datetime import datetime, timedelta
+import tempfile
+import shutil
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from agents.airflow_intelligence.memory import AgentMemory
+from agents.airflow_intelligence.src.core.memory import AgentMemory
+
+
+def get_temp_memory():
+    """Create AgentMemory with temporary directory for testing."""
+    temp_dir = tempfile.mkdtemp()
+    return AgentMemory(memory_dir=temp_dir), temp_dir
 
 
 def print_section(title):
     """Print a section header."""
-    print("\n" + "="*80)
+    print("\n" + "=" * 80)
     print(f"  {title}")
-    print("="*80 + "\n")
+    print("=" * 80 + "\n")
 
 
 def print_analysis_result(result):
@@ -31,11 +39,11 @@ def print_analysis_result(result):
     print(f"   Failure Count: {result.get('failure_count', 0)}")
     print(f"   Failure Rate: {result.get('failure_rate', 0)}%")
 
-    if result.get('consecutive_failures'):
+    if result.get("consecutive_failures"):
         print(f"   Consecutive Failures: {result['consecutive_failures']}")
 
-    is_chronic = result.get('is_chronic_failure', False)
-    severity = result.get('severity', 'unknown')
+    is_chronic = result.get("is_chronic_failure", False)
+    severity = result.get("severity", "unknown")
 
     if is_chronic:
         print(f"   Status: ⚠️ CHRONIC FAILURE")
@@ -51,7 +59,7 @@ def test_daily_dag_chronic_failure():
     """Test chronic failure detection for daily DAG."""
     print_section("Test 1: Daily DAG - Chronic Failure (5 failures in 7 days)")
 
-    memory = AgentMemory()
+    memory, temp_dir = get_temp_memory()
 
     # Simulate 5 failures in the last 7 days
     print("Simulating 5 failures for 'etl_daily' over 7 days...")
@@ -61,7 +69,7 @@ def test_daily_dag_chronic_failure():
             issue_type="failure",
             root_cause="Database connection timeout",
             resolution=None,
-            severity="high"
+            severity="high",
         )
     print("✅ Stored 5 failure incidents\n")
 
@@ -71,16 +79,19 @@ def test_daily_dag_chronic_failure():
     print_analysis_result(result)
 
     # Verify
-    assert result['is_chronic_failure'] == True, "Should detect chronic failure"
-    assert result['severity'] in ['high', 'critical'], "Should be high severity"
+    assert result["is_chronic_failure"] == True, "Should detect chronic failure"
+    assert result["severity"] in ["high", "critical"], "Should be high severity"
     print("✅ Test passed: Chronic failure correctly detected!\n")
+
+    # Cleanup
+    shutil.rmtree(temp_dir, ignore_errors=True)
 
 
 def test_daily_dag_not_chronic():
     """Test that daily DAG with few failures is not chronic."""
     print_section("Test 2: Daily DAG - Not Chronic (2 failures in 7 days)")
 
-    memory = AgentMemory()
+    memory, temp_dir = get_temp_memory()
 
     # Simulate only 2 failures
     print("Simulating 2 failures for 'data_validation'...")
@@ -89,7 +100,7 @@ def test_daily_dag_not_chronic():
             dag_id="data_validation",
             issue_type="failure",
             root_cause="Data quality check failed",
-            severity="medium"
+            severity="medium",
         )
     print("✅ Stored 2 failure incidents\n")
 
@@ -99,15 +110,18 @@ def test_daily_dag_not_chronic():
     print_analysis_result(result)
 
     # Verify
-    assert result['is_chronic_failure'] == False, "Should NOT detect chronic failure"
+    assert result["is_chronic_failure"] == False, "Should NOT detect chronic failure"
     print("✅ Test passed: Not chronic (as expected)\n")
+
+    # Cleanup
+    shutil.rmtree(temp_dir, ignore_errors=True)
 
 
 def test_weekly_dag_chronic_failure():
     """Test chronic failure detection for weekly DAG."""
     print_section("Test 3: Weekly DAG - Chronic Failure (3/3 consecutive failures)")
 
-    memory = AgentMemory()
+    memory, temp_dir = get_temp_memory()
 
     # Simulate 3 consecutive failures
     print("Simulating 3 consecutive failures for 'weekly_report'...")
@@ -116,7 +130,7 @@ def test_weekly_dag_chronic_failure():
             dag_id="weekly_report",
             issue_type="failure",
             root_cause="Spark job out of memory",
-            severity="critical"
+            severity="critical",
         )
     print("✅ Stored 3 failure incidents\n")
 
@@ -126,17 +140,20 @@ def test_weekly_dag_chronic_failure():
     print_analysis_result(result)
 
     # Verify
-    assert result['is_chronic_failure'] == True, "Should detect chronic failure"
-    assert result['severity'] == 'critical', "Should be critical severity"
-    assert result['failure_count'] == 3, "Should have 3 failures"
+    assert result["is_chronic_failure"] == True, "Should detect chronic failure"
+    assert result["severity"] == "critical", "Should be critical severity"
+    assert result["failure_count"] == 3, "Should have 3 failures"
     print("✅ Test passed: Weekly chronic failure correctly detected!\n")
+
+    # Cleanup
+    shutil.rmtree(temp_dir, ignore_errors=True)
 
 
 def test_monthly_dag_partial_failures():
     """Test monthly DAG with partial failures (not chronic)."""
     print_section("Test 4: Monthly DAG - Not Chronic (2/3 failures)")
 
-    memory = AgentMemory()
+    memory, temp_dir = get_temp_memory()
 
     # Simulate 2 failures, 1 success (different issue types)
     print("Simulating 2 failures and 1 non-failure for 'monthly_aggregation'...")
@@ -145,21 +162,21 @@ def test_monthly_dag_partial_failures():
         dag_id="monthly_aggregation",
         issue_type="failure",
         root_cause="Data source unavailable",
-        severity="high"
+        severity="high",
     )
 
     memory.store_incident(
         dag_id="monthly_aggregation",
         issue_type="performance_degradation",  # Not a failure
         root_cause="Slow query performance",
-        severity="medium"
+        severity="medium",
     )
 
     memory.store_incident(
         dag_id="monthly_aggregation",
         issue_type="failure",
         root_cause="API timeout",
-        severity="high"
+        severity="high",
     )
     print("✅ Stored 3 incidents (2 failures, 1 other)\n")
 
@@ -169,32 +186,40 @@ def test_monthly_dag_partial_failures():
     print_analysis_result(result)
 
     # Verify
-    assert result['is_chronic_failure'] == False, "Should NOT be chronic (only 2/3 failed)"
-    assert result['severity'] in ['high', 'medium'], "Should be high severity"
+    assert (
+        result["is_chronic_failure"] == False
+    ), "Should NOT be chronic (only 2/3 failed)"
+    assert result["severity"] in ["high", "medium"], "Should be high severity"
     print("✅ Test passed: Not chronic with 2/3 failures (as expected)\n")
+
+    # Cleanup
+    shutil.rmtree(temp_dir, ignore_errors=True)
 
 
 def test_no_history():
     """Test DAG with no historical data."""
     print_section("Test 5: DAG with No Historical Data")
 
-    memory = AgentMemory()
+    memory, temp_dir = get_temp_memory()
 
     print("Analyzing 'new_dag' with no historical incidents...")
     result = memory.analyze_failure_patterns("new_dag", "daily")
     print_analysis_result(result)
 
     # Verify
-    assert result['is_chronic_failure'] == False, "Should not be chronic with no data"
-    assert result['failure_count'] == 0, "Should have 0 failures"
+    assert result["is_chronic_failure"] == False, "Should not be chronic with no data"
+    assert result["failure_count"] == 0, "Should have 0 failures"
     print("✅ Test passed: No false positives with empty history\n")
+
+    # Cleanup
+    shutil.rmtree(temp_dir, ignore_errors=True)
 
 
 def test_mixed_scenarios():
     """Test comprehensive scenario with multiple DAGs."""
     print_section("Test 6: Comprehensive Multi-DAG Analysis")
 
-    memory = AgentMemory()
+    memory, temp_dir = get_temp_memory()
 
     print("Setting up complex scenario with 5 DAGs:\n")
 
@@ -205,7 +230,7 @@ def test_mixed_scenarios():
             dag_id="etl_production",
             issue_type="failure",
             root_cause="Network timeout",
-            severity="critical"
+            severity="critical",
         )
 
     # DAG 2: Medium daily issues
@@ -215,7 +240,7 @@ def test_mixed_scenarios():
             dag_id="data_sync",
             issue_type="failure",
             root_cause="Rate limit exceeded",
-            severity="medium"
+            severity="medium",
         )
 
     # DAG 3: Weekly complete failure
@@ -225,7 +250,7 @@ def test_mixed_scenarios():
             dag_id="weekly_summary",
             issue_type="failure",
             root_cause="Report template broken",
-            severity="critical"
+            severity="critical",
         )
 
     # DAG 4: Performance issue (not failures)
@@ -235,7 +260,7 @@ def test_mixed_scenarios():
             dag_id="analytics_pipeline",
             issue_type="performance_degradation",
             root_cause="Slow queries",
-            severity="medium"
+            severity="medium",
         )
 
     # DAG 5: Single failure
@@ -244,7 +269,7 @@ def test_mixed_scenarios():
         dag_id="backup_job",
         issue_type="failure",
         root_cause="Disk space",
-        severity="low"
+        severity="low",
     )
 
     print("\n✅ Setup complete. Analyzing all DAGs...\n")
@@ -255,7 +280,7 @@ def test_mixed_scenarios():
         ("data_sync", "daily"),
         ("weekly_summary", "weekly"),
         ("analytics_pipeline", "daily"),
-        ("backup_job", "daily")
+        ("backup_job", "daily"),
     ]
 
     chronic_dags = []
@@ -271,7 +296,7 @@ def test_mixed_scenarios():
         print(f"  Chronic: {'⚠️ YES' if result.get('is_chronic_failure') else '✅ No'}")
         print(f"  Severity: {result.get('severity', 'unknown').upper()}")
 
-        if result.get('is_chronic_failure'):
+        if result.get("is_chronic_failure"):
             chronic_dags.append(dag_id)
 
     print("\n" + "-" * 80)
@@ -288,17 +313,26 @@ def test_mixed_scenarios():
     # Verify
     assert "etl_production" in chronic_dags, "etl_production should be chronic"
     assert "weekly_summary" in chronic_dags, "weekly_summary should be chronic"
-    assert "data_sync" not in chronic_dags, "data_sync should NOT be chronic (only 2 failures)"
-    assert "analytics_pipeline" not in chronic_dags, "analytics_pipeline should NOT be chronic (no failures)"
-    assert "backup_job" not in chronic_dags, "backup_job should NOT be chronic (only 1 failure)"
+    assert (
+        "data_sync" not in chronic_dags
+    ), "data_sync should NOT be chronic (only 2 failures)"
+    assert (
+        "analytics_pipeline" not in chronic_dags
+    ), "analytics_pipeline should NOT be chronic (no failures)"
+    assert (
+        "backup_job" not in chronic_dags
+    ), "backup_job should NOT be chronic (only 1 failure)"
+
+    # Cleanup
+    shutil.rmtree(temp_dir, ignore_errors=True)
 
 
 def main():
     """Run all tests."""
     print()
-    print("="*80)
+    print("=" * 80)
     print("  🧪 FAILURE PATTERN ANALYSIS - TEST SUITE")
-    print("="*80)
+    print("=" * 80)
     print()
     print("This test suite demonstrates the new chronic failure detection capability.")
     print()
@@ -324,7 +358,9 @@ def main():
         print("🎉 Failure Pattern Analysis is working perfectly!")
         print()
         print("📚 Next Steps:")
-        print("  1. Test with real agent: python -m agents.airflow_intelligence.cli chat")
+        print(
+            "  1. Test with real agent: python -m agents.airflow_intelligence.cli chat"
+        )
         print("  2. Ask: 'Find chronically failing DAGs'")
         print("  3. Watch agent use analyze_failure_patterns() automatically!")
         print()
@@ -337,6 +373,7 @@ def main():
     except Exception as e:
         print(f"\n❌ Error: {e}\n")
         import traceback
+
         traceback.print_exc()
         sys.exit(1)
 

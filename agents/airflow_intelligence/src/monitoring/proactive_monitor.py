@@ -24,8 +24,7 @@ from ..core import AgentConfig
 
 # Set up logging
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
@@ -48,11 +47,7 @@ class ProactiveMonitor:
     - "Manual investigation" → "Autonomous monitoring"
     """
 
-    def __init__(
-        self,
-        config: AgentConfig,
-        check_interval_minutes: int = 15
-    ):
+    def __init__(self, config: AgentConfig, check_interval_minutes: int = 15):
         """
         Initialize proactive monitor.
 
@@ -72,7 +67,9 @@ class ProactiveMonitor:
         signal.signal(signal.SIGINT, self._signal_handler)
         signal.signal(signal.SIGTERM, self._signal_handler)
 
-        logger.info(f"Proactive monitor initialized (check interval: {check_interval_minutes} minutes)")
+        logger.info(
+            f"Proactive monitor initialized (check interval: {check_interval_minutes} minutes)"
+        )
 
     def start(self):
         """
@@ -84,15 +81,17 @@ class ProactiveMonitor:
         """
         logger.info("🤖 Starting proactive monitoring...")
 
-        print("\n" + "="*80)
+        print("\n" + "=" * 80)
         print("🤖 PROACTIVE AGENT MODE - Autonomous Monitoring")
-        print("="*80)
-        print(f"✅ Agent will check system every {self.check_interval.total_seconds()/60:.0f} minutes")
+        print("=" * 80)
+        print(
+            f"✅ Agent will check system every {self.check_interval.total_seconds()/60:.0f} minutes"
+        )
         print("✅ Agent will decide autonomously when to investigate and alert")
         print("✅ Agent will use memory to detect patterns and learn")
         print("✅ Agent will analyze failure patterns automatically")
         print("✅ Press Ctrl+C to stop gracefully")
-        print("="*80 + "\n")
+        print("=" * 80 + "\n")
 
         self.running = True
 
@@ -105,11 +104,13 @@ class ProactiveMonitor:
             try:
                 # Calculate next check time
                 next_check = datetime.utcnow() + self.check_interval
-                next_check_str = next_check.strftime('%H:%M:%S UTC')
+                next_check_str = next_check.strftime("%H:%M:%S UTC")
 
                 logger.info(f"⏰ Next check scheduled at {next_check_str}")
                 print(f"\n⏰ Next check at {next_check_str}")
-                print(f"   (Check #{self.check_count + 1} complete. Sleeping for {self.check_interval.total_seconds()/60:.0f} minutes...)")
+                print(
+                    f"   (Check #{self.check_count + 1} complete. Sleeping for {self.check_interval.total_seconds()/60:.0f} minutes...)"
+                )
 
                 # Sleep until next check
                 time.sleep(self.check_interval.total_seconds())
@@ -143,7 +144,9 @@ class ProactiveMonitor:
         check_time = datetime.utcnow()
 
         print(f"\n{'='*80}")
-        print(f"🔍 Proactive Check #{self.check_count} @ {check_time.strftime('%Y-%m-%d %H:%M:%S UTC')}")
+        print(
+            f"🔍 Proactive Check #{self.check_count} @ {check_time.strftime('%Y-%m-%d %H:%M:%S UTC')}"
+        )
         print(f"{'='*80}\n")
 
         # Construct objective for the agent
@@ -152,8 +155,7 @@ class ProactiveMonitor:
         try:
             # Execute mission - agent decides autonomously what to do
             result = self.orchestrator.execute_mission(
-                objective=objective,
-                show_reasoning=True  # Show agent's reasoning
+                objective=objective, show_reasoning=True  # Show agent's reasoning
             )
 
             self.last_check = check_time
@@ -167,7 +169,9 @@ class ProactiveMonitor:
 
             # Store metrics
             if result.get("tools_used"):
-                print(f"\n📊 Agent used {len(result['tools_used'])} tools in this check")
+                print(
+                    f"\n📊 Agent used {len(result['tools_used'])} tools in this check"
+                )
 
             return result
 
@@ -269,21 +273,26 @@ Now execute your proactive monitoring mission autonomously!"""
         logger.info("Shutting down proactive monitor...")
         self.running = False
 
-        print("\n" + "="*80)
+        print("\n" + "=" * 80)
         print("📊 PROACTIVE MONITORING SUMMARY")
-        print("="*80)
+        print("=" * 80)
         print(f"Total Checks: {self.check_count}")
-        print(f"Started: {self.last_check.strftime('%Y-%m-%d %H:%M:%S UTC') if self.last_check else 'N/A'}")
-        print(f"Duration: {(datetime.utcnow() - self.last_check).total_seconds()/60:.1f} minutes" if self.last_check else "N/A")
-        print("="*80)
+        print(
+            f"Started: {self.last_check.strftime('%Y-%m-%d %H:%M:%S UTC') if self.last_check else 'N/A'}"
+        )
+        print(
+            f"Duration: {(datetime.utcnow() - self.last_check).total_seconds()/60:.1f} minutes"
+            if self.last_check
+            else "N/A"
+        )
+        print("=" * 80)
         print("\n👋 Proactive monitoring stopped gracefully")
         print("✅ All agent state saved")
         print("✅ Memory persisted to disk\n")
 
 
 def run_proactive_monitor(
-    check_interval_minutes: int = 15,
-    config: Optional[AgentConfig] = None
+    check_interval_minutes: int = 15, config: Optional[AgentConfig] = None
 ):
     """
     Convenience function to run proactive monitoring.
@@ -315,5 +324,6 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"\n❌ Error: {e}")
         import traceback
+
         traceback.print_exc()
         sys.exit(1)

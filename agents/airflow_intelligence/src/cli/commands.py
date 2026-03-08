@@ -32,6 +32,7 @@ try:
     from rich.progress import Progress, SpinnerColumn, TextColumn
     from rich.table import Table
     from rich import box
+
     RICH_AVAILABLE = True
 except ImportError:
     RICH_AVAILABLE = False
@@ -43,7 +44,7 @@ from ..core import create_orchestrator, AgentOrchestrator
 # Set up logging
 logging.basicConfig(
     level=logging.WARNING,  # Only show warnings/errors in CLI
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
 
@@ -78,17 +79,13 @@ class AgentCLI:
 
 Powered by Claude AI + AWS Bedrock
             """
-            panel = Panel(
-                Markdown(banner),
-                border_style="cyan",
-                box=box.DOUBLE
-            )
+            panel = Panel(Markdown(banner), border_style="cyan", box=box.DOUBLE)
             self.console.print(panel)
         else:
-            print("="*80)
+            print("=" * 80)
             print("🤖 Airflow Intelligence Agent")
             print("Autonomous AI for Pipeline Monitoring")
-            print("="*80 + "\n")
+            print("=" * 80 + "\n")
 
     def initialize_orchestrator(self) -> bool:
         """
@@ -102,7 +99,7 @@ Powered by Claude AI + AWS Bedrock
                 with Progress(
                     SpinnerColumn(),
                     TextColumn("[progress.description]{task.description}"),
-                    console=self.console
+                    console=self.console,
                 ) as progress:
                     task = progress.add_task("Initializing agent...", total=None)
                     self.orchestrator = create_orchestrator()
@@ -116,7 +113,9 @@ Powered by Claude AI + AWS Bedrock
 
         except ValueError as e:
             self.print(f"\n[bold red]❌ Configuration Error:[/bold red] {e}\n")
-            self.print("[yellow]💡 Tip:[/yellow] Make sure your .env file is configured correctly.")
+            self.print(
+                "[yellow]💡 Tip:[/yellow] Make sure your .env file is configured correctly."
+            )
             self.print("   Required: AIRFLOW_DB_URL")
             self.print("   Optional: AWS credentials, SLACK_BOT_TOKEN\n")
             return False
@@ -143,7 +142,9 @@ Powered by Claude AI + AWS Bedrock
             table.add_row("Region", config.aws_region)
             table.add_row("Temperature", str(config.temperature))
             table.add_row("Database", "✅ Connected")
-            table.add_row("Slack", "✅ Enabled" if config.enable_slack else "❌ Disabled")
+            table.add_row(
+                "Slack", "✅ Enabled" if config.enable_slack else "❌ Disabled"
+            )
             table.add_row("Anomaly Threshold", f"{config.anomaly_multiplier}x")
 
             self.console.print(table)
@@ -194,22 +195,26 @@ Powered by Claude AI + AWS Bedrock
 
         try:
             result = self.orchestrator.execute_mission(
-                objective=objective,
-                show_reasoning=verbose,
-                return_details=True
+                objective=objective, show_reasoning=verbose, return_details=True
             )
 
             if result["success"]:
                 # Display response
                 if self.console:
-                    self.console.print("\n[bold green]🤖 Agent Response:[/bold green]\n")
+                    self.console.print(
+                        "\n[bold green]🤖 Agent Response:[/bold green]\n"
+                    )
                     self.console.print(Markdown(result["response"]))
 
                     # Show execution details
                     if verbose:
                         self.console.print("\n[dim]─" * 40 + "[/dim]")
-                        self.console.print(f"[dim]Iterations: {result.get('iterations', 0)}[/dim]")
-                        self.console.print(f"[dim]Tools used: {len(result.get('tools_used', []))}[/dim]")
+                        self.console.print(
+                            f"[dim]Iterations: {result.get('iterations', 0)}[/dim]"
+                        )
+                        self.console.print(
+                            f"[dim]Tools used: {len(result.get('tools_used', []))}[/dim]"
+                        )
                 else:
                     print("\n🤖 Agent Response:")
                     print(result["response"])
@@ -219,7 +224,9 @@ Powered by Claude AI + AWS Bedrock
 
                 return 0
             else:
-                self.print(f"\n[bold red]❌ Mission Failed:[/bold red] {result.get('error', 'Unknown error')}")
+                self.print(
+                    f"\n[bold red]❌ Mission Failed:[/bold red] {result.get('error', 'Unknown error')}"
+                )
                 return 1
 
         except Exception as e:
@@ -237,10 +244,12 @@ Powered by Claude AI + AWS Bedrock
                 with Progress(
                     SpinnerColumn(),
                     TextColumn("[progress.description]{task.description}"),
-                    console=self.console
+                    console=self.console,
                 ) as progress:
                     task = progress.add_task("Initializing agent...", total=None)
-                    self.orchestrator = create_orchestrator(max_iterations=20)  # Higher limit for reports
+                    self.orchestrator = create_orchestrator(
+                        max_iterations=20
+                    )  # Higher limit for reports
                     progress.update(task, completed=True)
             else:
                 print("Initializing agent (configured for comprehensive reports)...")
@@ -261,21 +270,31 @@ Powered by Claude AI + AWS Bedrock
 
             if result["success"]:
                 if self.console:
-                    self.console.print("\n[bold green]✅ Report Generated[/bold green]\n")
+                    self.console.print(
+                        "\n[bold green]✅ Report Generated[/bold green]\n"
+                    )
                     self.console.print(Markdown(result["response"]))
 
                     # Summary
                     self.console.print("\n[dim]─" * 40 + "[/dim]")
-                    self.console.print(f"[dim]Timestamp: {result.get('timestamp', 'N/A')}[/dim]")
-                    self.console.print(f"[dim]Tools used: {len(result.get('tools_used', []))}[/dim]")
-                    self.console.print(f"[dim]Iterations: {result.get('iterations', 'N/A')}[/dim]")
+                    self.console.print(
+                        f"[dim]Timestamp: {result.get('timestamp', 'N/A')}[/dim]"
+                    )
+                    self.console.print(
+                        f"[dim]Tools used: {len(result.get('tools_used', []))}[/dim]"
+                    )
+                    self.console.print(
+                        f"[dim]Iterations: {result.get('iterations', 'N/A')}[/dim]"
+                    )
                 else:
                     print("\n✅ Report Generated\n")
                     print(result["response"])
 
                 return 0
             else:
-                self.print(f"\n[bold red]❌ Report Generation Failed:[/bold red] {result.get('error', 'Unknown error')}")
+                self.print(
+                    f"\n[bold red]❌ Report Generation Failed:[/bold red] {result.get('error', 'Unknown error')}"
+                )
                 return 1
 
         except Exception as e:
@@ -306,7 +325,9 @@ Powered by Claude AI + AWS Bedrock
 
         self.print("\n[bold cyan]🤖 Starting Proactive Monitoring Mode[/bold cyan]\n")
         self.print(f"[dim]Check interval: {interval} minutes[/dim]")
-        self.print(f"[dim]Agent will run continuously and decide autonomously when to alert[/dim]\n")
+        self.print(
+            f"[dim]Agent will run continuously and decide autonomously when to alert[/dim]\n"
+        )
 
         try:
             from ..monitoring import ProactiveMonitor
@@ -379,7 +400,7 @@ Powered by Claude AI + AWS Bedrock
             # Simple test mission
             result = self.orchestrator.execute_mission(
                 objective="Say 'test successful' if you can read this",
-                show_reasoning=False
+                show_reasoning=False,
             )
             if result["success"]:
                 self.print("[green]✓ PASS[/green]")
@@ -396,7 +417,9 @@ Powered by Claude AI + AWS Bedrock
             self.print("\n[bold green]✅ All tests passed! System ready.[/bold green]")
             return 0
         else:
-            self.print("\n[bold yellow]⚠️  Some tests failed. Check configuration.[/bold yellow]")
+            self.print(
+                "\n[bold yellow]⚠️  Some tests failed. Check configuration.[/bold yellow]"
+            )
             return 1
 
 
@@ -424,45 +447,38 @@ Examples:
 
   # Show configuration
   %(prog)s config
-        """
+        """,
     )
 
     parser.add_argument(
-        'command',
-        choices=['interactive', 'mission', 'report', 'config', 'test', 'proactive'],
-        help='Command to execute'
+        "command",
+        choices=["interactive", "mission", "report", "config", "test", "proactive"],
+        help="Command to execute",
+    )
+
+    parser.add_argument("objective", nargs="?", help="Objective for mission command")
+
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        action="store_true",
+        help="Show detailed reasoning and execution steps",
     )
 
     parser.add_argument(
-        'objective',
-        nargs='?',
-        help='Objective for mission command'
-    )
-
-    parser.add_argument(
-        '-v', '--verbose',
-        action='store_true',
-        help='Show detailed reasoning and execution steps'
-    )
-
-    parser.add_argument(
-        '--interval',
+        "--interval",
         type=int,
         default=15,
-        help='Check interval in minutes for proactive monitoring (default: 15)'
+        help="Check interval in minutes for proactive monitoring (default: 15)",
     )
 
     parser.add_argument(
-        '--no-slack',
-        action='store_true',
-        help='Disable Slack notifications for this run'
+        "--no-slack",
+        action="store_true",
+        help="Disable Slack notifications for this run",
     )
 
-    parser.add_argument(
-        '--debug',
-        action='store_true',
-        help='Enable debug logging'
-    )
+    parser.add_argument("--debug", action="store_true", help="Enable debug logging")
 
     args = parser.parse_args()
 
@@ -475,26 +491,26 @@ Examples:
 
     # Route to appropriate command
     try:
-        if args.command == 'interactive':
+        if args.command == "interactive":
             return cli.cmd_interactive()
 
-        elif args.command == 'mission':
+        elif args.command == "mission":
             if not args.objective:
                 print("Error: mission command requires an objective")
                 print("Usage: cli.py mission 'Your objective here'")
                 return 1
             return cli.cmd_mission(args.objective, verbose=args.verbose)
 
-        elif args.command == 'report':
+        elif args.command == "report":
             return cli.cmd_report()
 
-        elif args.command == 'proactive':
+        elif args.command == "proactive":
             return cli.cmd_proactive(interval=args.interval)
 
-        elif args.command == 'config':
+        elif args.command == "config":
             return cli.cmd_config()
 
-        elif args.command == 'test':
+        elif args.command == "test":
             return cli.cmd_test()
 
         else:

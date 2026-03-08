@@ -35,8 +35,8 @@ class DatabaseTools:
             self.engine = create_engine(
                 db_url,
                 pool_pre_ping=True,  # Verify connections before using
-                pool_recycle=3600,    # Recycle connections after 1 hour
-                connect_args={"connect_timeout": 10}
+                pool_recycle=3600,  # Recycle connections after 1 hour
+                connect_args={"connect_timeout": 10},
             )
             logger.info("Database connection initialized successfully")
         except Exception as e:
@@ -74,7 +74,7 @@ class DatabaseTools:
         self,
         window_hours: int = 24,
         dag_id_pattern: Optional[str] = None,
-        state: Optional[str] = None
+        state: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
         """
         Query recent DAG runs from Airflow database.
@@ -120,8 +120,7 @@ class DatabaseTools:
 
             with self.engine.connect() as conn:
                 result = conn.execute(
-                    text(query).execution_options(timeout=self.query_timeout),
-                    params
+                    text(query).execution_options(timeout=self.query_timeout), params
                 )
                 rows = [self._serialize_row(dict(row._mapping)) for row in result]
 
@@ -136,9 +135,7 @@ class DatabaseTools:
             return []
 
     def analyze_performance_baseline(
-        self,
-        days: int = 14,
-        dag_id: Optional[str] = None
+        self, days: int = 14, dag_id: Optional[str] = None
     ) -> List[Dict[str, Any]]:
         """
         Calculate performance baselines (percentiles) for DAG runs.
@@ -190,8 +187,7 @@ class DatabaseTools:
 
             with self.engine.connect() as conn:
                 result = conn.execute(
-                    text(query).execution_options(timeout=self.query_timeout),
-                    params
+                    text(query).execution_options(timeout=self.query_timeout), params
                 )
                 rows = [self._serialize_row(dict(row._mapping)) for row in result]
 
@@ -205,11 +201,7 @@ class DatabaseTools:
             logger.error(f"Unexpected error in analyze_performance_baseline: {e}")
             return []
 
-    def get_task_breakdown(
-        self,
-        dag_id: str,
-        run_id: str
-    ) -> List[Dict[str, Any]]:
+    def get_task_breakdown(self, dag_id: str, run_id: str) -> List[Dict[str, Any]]:
         """
         Get task-level breakdown for a specific DAG run.
 
@@ -222,7 +214,7 @@ class DatabaseTools:
         """
         try:
             # If run_id is 'latest', get the most recent run_id
-            if run_id.lower() == 'latest':
+            if run_id.lower() == "latest":
                 latest_query = """
                     SELECT run_id
                     FROM dag_run
@@ -232,8 +224,7 @@ class DatabaseTools:
                 """
                 with self.engine.connect() as conn:
                     result = conn.execute(
-                        text(latest_query),
-                        {"dag_id": dag_id}
+                        text(latest_query), {"dag_id": dag_id}
                     ).fetchone()
 
                     if not result:
@@ -267,7 +258,7 @@ class DatabaseTools:
             with self.engine.connect() as conn:
                 result = conn.execute(
                     text(query).execution_options(timeout=self.query_timeout),
-                    {"dag_id": dag_id, "run_id": run_id}
+                    {"dag_id": dag_id, "run_id": run_id},
                 )
                 rows = [self._serialize_row(dict(row._mapping)) for row in result]
 
@@ -281,10 +272,7 @@ class DatabaseTools:
             logger.error(f"Unexpected error in get_task_breakdown: {e}")
             return []
 
-    def get_dag_health_summary(
-        self,
-        include_stale: bool = True
-    ) -> Dict[str, Any]:
+    def get_dag_health_summary(self, include_stale: bool = True) -> Dict[str, Any]:
         """
         Get high-level health summary for all DAGs.
 
@@ -329,13 +317,17 @@ class DatabaseTools:
                 summary = self._serialize_row(dict(result._mapping))
 
                 # Calculate health percentage
-                total = summary['success_count'] + summary['failed_count']
-                health_pct = (summary['success_count'] / total * 100) if total > 0 else 0
+                total = summary["success_count"] + summary["failed_count"]
+                health_pct = (
+                    (summary["success_count"] / total * 100) if total > 0 else 0
+                )
 
-                summary['health_percentage'] = round(health_pct, 2)
+                summary["health_percentage"] = round(health_pct, 2)
 
-                logger.info(f"Health summary: {summary['active_dags']}/{summary['total_dags']} active, "
-                          f"{health_pct:.1f}% healthy")
+                logger.info(
+                    f"Health summary: {summary['active_dags']}/{summary['total_dags']} active, "
+                    f"{health_pct:.1f}% healthy"
+                )
 
                 return summary
 
@@ -345,4 +337,3 @@ class DatabaseTools:
         except Exception as e:
             logger.error(f"Unexpected error in get_dag_health_summary: {e}")
             return {"error": str(e)}
-

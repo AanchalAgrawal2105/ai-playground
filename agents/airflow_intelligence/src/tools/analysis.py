@@ -18,11 +18,7 @@ class AnalysisTools:
     - Identify patterns and trends
     """
 
-    def __init__(
-        self,
-        anomaly_multiplier: float = 1.5,
-        min_history: int = 10
-    ):
+    def __init__(self, anomaly_multiplier: float = 1.5, min_history: int = 10):
         """
         Initialize analysis tools.
 
@@ -32,14 +28,16 @@ class AnalysisTools:
         """
         self.anomaly_multiplier = anomaly_multiplier
         self.min_history = min_history
-        logger.info(f"Analysis tools initialized (anomaly threshold: {anomaly_multiplier}x P90)")
+        logger.info(
+            f"Analysis tools initialized (anomaly threshold: {anomaly_multiplier}x P90)"
+        )
 
     def detect_anomalies(
         self,
         recent_runs: List[Dict[str, Any]],
         baselines: List[Dict[str, Any]],
         sensitivity: str = "medium",
-        focus_area: str = "duration"
+        focus_area: str = "duration",
     ) -> List[Dict[str, Any]]:
         """
         Detect performance anomalies using statistical analysis.
@@ -64,64 +62,69 @@ class AnalysisTools:
 
             # Merge recent runs with baselines
             merged = recent_df.merge(
-                baseline_df[['dag_id', 'p90', 'p95', 'run_count']],
-                on='dag_id',
-                how='left'
+                baseline_df[["dag_id", "p90", "p95", "run_count"]],
+                on="dag_id",
+                how="left",
             )
 
             # Set threshold based on sensitivity
             threshold_map = {
-                "low": 2.0,      # >2x P90
-                "medium": 1.5,   # >1.5x P90
-                "high": 1.2      # >1.2x P90
+                "low": 2.0,  # >2x P90
+                "medium": 1.5,  # >1.5x P90
+                "high": 1.2,  # >1.2x P90
             }
             threshold = threshold_map.get(sensitivity, 1.5)
 
             # Focus area specific analysis
             if focus_area == "duration":
                 # Detect duration anomalies
-                merged['is_anomaly'] = (
-                    (merged['run_count'] >= self.min_history) &
-                    (merged['p90'].notna()) &
-                    (merged['duration_seconds'] > threshold * merged['p90'])
+                merged["is_anomaly"] = (
+                    (merged["run_count"] >= self.min_history)
+                    & (merged["p90"].notna())
+                    & (merged["duration_seconds"] > threshold * merged["p90"])
                 )
 
-                merged['deviation_factor'] = merged['duration_seconds'] / merged['p90']
+                merged["deviation_factor"] = merged["duration_seconds"] / merged["p90"]
 
             elif focus_area == "failures":
                 # Focus on failed runs
-                merged['is_anomaly'] = (merged['state'] == 'failed')
-                merged['deviation_factor'] = 1.0
+                merged["is_anomaly"] = merged["state"] == "failed"
+                merged["deviation_factor"] = 1.0
 
             else:  # resources or other
                 # General anomaly detection
-                merged['is_anomaly'] = (
-                    (merged['run_count'] >= self.min_history) &
-                    (merged['duration_seconds'] > threshold * merged['p90'])
+                merged["is_anomaly"] = (merged["run_count"] >= self.min_history) & (
+                    merged["duration_seconds"] > threshold * merged["p90"]
                 )
-                merged['deviation_factor'] = merged['duration_seconds'] / merged['p90']
+                merged["deviation_factor"] = merged["duration_seconds"] / merged["p90"]
 
             # Filter to anomalies only
-            anomalies = merged[merged['is_anomaly']].copy()
+            anomalies = merged[merged["is_anomaly"]].copy()
 
             # Sort by severity (deviation factor)
-            anomalies = anomalies.sort_values('deviation_factor', ascending=False)
+            anomalies = anomalies.sort_values("deviation_factor", ascending=False)
 
             # Convert to list of dicts
             result = []
             for _, row in anomalies.iterrows():
-                result.append({
-                    'dag_id': row['dag_id'],
-                    'run_id': row['run_id'],
-                    'state': row['state'],
-                    'duration_seconds': float(row['duration_seconds']),
-                    'baseline_p90': float(row['p90']) if pd.notna(row['p90']) else None,
-                    'deviation_factor': float(row['deviation_factor']),
-                    'severity': self._calculate_severity(row['deviation_factor']),
-                    'confidence': self._calculate_confidence(row['run_count'])
-                })
+                result.append(
+                    {
+                        "dag_id": row["dag_id"],
+                        "run_id": row["run_id"],
+                        "state": row["state"],
+                        "duration_seconds": float(row["duration_seconds"]),
+                        "baseline_p90": (
+                            float(row["p90"]) if pd.notna(row["p90"]) else None
+                        ),
+                        "deviation_factor": float(row["deviation_factor"]),
+                        "severity": self._calculate_severity(row["deviation_factor"]),
+                        "confidence": self._calculate_confidence(row["run_count"]),
+                    }
+                )
 
-            logger.info(f"Detected {len(result)} anomalies (sensitivity: {sensitivity})")
+            logger.info(
+                f"Detected {len(result)} anomalies (sensitivity: {sensitivity})"
+            )
             return result
 
         except Exception as e:

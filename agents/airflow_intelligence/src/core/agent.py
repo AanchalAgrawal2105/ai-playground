@@ -18,8 +18,7 @@ from abc import ABC, abstractmethod
 
 # Set up logging
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
@@ -44,7 +43,7 @@ class BaseAgent(ABC):
         region: str = "us-east-1",
         temperature: float = 0.3,
         max_tokens: int = 4096,
-        max_iterations: int = 10
+        max_iterations: int = 10,
     ):
         """
         Initialize the agent.
@@ -76,7 +75,7 @@ class BaseAgent(ABC):
         self.working_memory: Dict[str, Any] = {
             "tools_used": [],
             "findings": {},
-            "iteration_count": 0
+            "iteration_count": 0,
         }
 
     @abstractmethod
@@ -122,10 +121,9 @@ class BaseAgent(ABC):
             Agent's final response (as text)
         """
         # Add user message to conversation history
-        self.conversation_history.append({
-            "role": "user",
-            "content": [{"text": user_message}]
-        })
+        self.conversation_history.append(
+            {"role": "user", "content": [{"text": user_message}]}
+        )
 
         if show_reasoning:
             print(f"\n{'='*80}")
@@ -142,7 +140,9 @@ class BaseAgent(ABC):
             self.working_memory["iteration_count"] = iteration + 1
 
             if show_reasoning:
-                print(f"🤔 Agent thinking (iteration {iteration + 1}/{self.max_iterations})...")
+                print(
+                    f"🤔 Agent thinking (iteration {iteration + 1}/{self.max_iterations})..."
+                )
 
             try:
                 # Call Bedrock with tool configuration
@@ -155,10 +155,12 @@ class BaseAgent(ABC):
                         print(f"🔧 Agent decided to use tools...")
 
                     # Store the assistant's tool-use message in history FIRST
-                    self.conversation_history.append({
-                        "role": "assistant",
-                        "content": response["output"]["message"]["content"]
-                    })
+                    self.conversation_history.append(
+                        {
+                            "role": "assistant",
+                            "content": response["output"]["message"]["content"],
+                        }
+                    )
 
                     # Execute the tools agent requested
                     tool_results = self._execute_tools(response, show_reasoning)
@@ -174,15 +176,21 @@ class BaseAgent(ABC):
                     final_text = self._extract_response_text(response)
 
                     if show_reasoning:
-                        print(f"\n✅ Agent reached conclusion after {iteration + 1} iterations")
-                        print(f"🛠️  Tools used: {len(self.working_memory['tools_used'])}")
+                        print(
+                            f"\n✅ Agent reached conclusion after {iteration + 1} iterations"
+                        )
+                        print(
+                            f"🛠️  Tools used: {len(self.working_memory['tools_used'])}"
+                        )
                         print(f"{'='*80}\n")
 
                     # Store assistant's response in history
-                    self.conversation_history.append({
-                        "role": "assistant",
-                        "content": response["output"]["message"]["content"]
-                    })
+                    self.conversation_history.append(
+                        {
+                            "role": "assistant",
+                            "content": response["output"]["message"]["content"],
+                        }
+                    )
 
                     return final_text
 
@@ -211,8 +219,8 @@ class BaseAgent(ABC):
                 toolConfig={"tools": self.get_tools()},
                 inferenceConfig={
                     "maxTokens": self.max_tokens,
-                    "temperature": self.temperature
-                }
+                    "temperature": self.temperature,
+                },
             )
             return response
 
@@ -228,8 +236,8 @@ class BaseAgent(ABC):
                     toolConfig={"tools": self.get_tools()},
                     inferenceConfig={
                         "maxTokens": self.max_tokens,
-                        "temperature": self.temperature
-                    }
+                        "temperature": self.temperature,
+                    },
                 )
                 return response
             logger.error(f"Bedrock API error: {e}")
@@ -248,7 +256,9 @@ class BaseAgent(ABC):
         first_msg = self.conversation_history[0]
         recent_msgs = self.conversation_history[-4:]
         self.conversation_history = [first_msg] + recent_msgs
-        logger.info(f"Trimmed conversation to {len(self.conversation_history)} messages")
+        logger.info(
+            f"Trimmed conversation to {len(self.conversation_history)} messages"
+        )
 
     def _has_tool_use(self, response: Dict[str, Any]) -> bool:
         """Check if the response contains tool use requests."""
@@ -256,9 +266,7 @@ class BaseAgent(ABC):
         return any(isinstance(item, dict) and "toolUse" in item for item in content)
 
     def _execute_tools(
-        self,
-        response: Dict[str, Any],
-        show_reasoning: bool = True
+        self, response: Dict[str, Any], show_reasoning: bool = True
     ) -> List[Dict[str, Any]]:
         """
         Execute tools that the agent requested.
@@ -288,33 +296,41 @@ class BaseAgent(ABC):
                     print(f"      Parameters: {json.dumps(tool_input, indent=6)}")
 
                 # Track tool usage
-                self.working_memory["tools_used"].append({
-                    "name": tool_name,
-                    "input": tool_input,
-                    "iteration": self.working_memory["iteration_count"]
-                })
+                self.working_memory["tools_used"].append(
+                    {
+                        "name": tool_name,
+                        "input": tool_input,
+                        "iteration": self.working_memory["iteration_count"],
+                    }
+                )
 
                 # Placeholder result - will be replaced by orchestrator
-                tool_results.append({
-                    "toolUseId": tool_use_id,
-                    "content": [{
-                        "json": {
-                            "status": "placeholder",
-                            "message": "Tool execution handled by orchestrator",
-                            "tool_name": tool_name,
-                            "tool_input": tool_input
-                        }
-                    }]
-                })
+                tool_results.append(
+                    {
+                        "toolUseId": tool_use_id,
+                        "content": [
+                            {
+                                "json": {
+                                    "status": "placeholder",
+                                    "message": "Tool execution handled by orchestrator",
+                                    "tool_name": tool_name,
+                                    "tool_input": tool_input,
+                                }
+                            }
+                        ],
+                    }
+                )
 
         return tool_results
 
     def _add_tool_results(self, tool_results: List[Dict[str, Any]]) -> None:
         """Add tool results to conversation history (memory)."""
-        self.conversation_history.append({
-            "role": "user",
-            "content": [{"toolResult": result} for result in tool_results]
-        })
+        self.conversation_history.append(
+            {
+                "role": "user",
+                "content": [{"toolResult": result} for result in tool_results],
+            }
+        )
 
     def _extract_response_text(self, response: Dict[str, Any]) -> str:
         """Extract text from Bedrock response."""
@@ -330,11 +346,7 @@ class BaseAgent(ABC):
     def reset_conversation(self) -> None:
         """Clear conversation history and working memory."""
         self.conversation_history = []
-        self.working_memory = {
-            "tools_used": [],
-            "findings": {},
-            "iteration_count": 0
-        }
+        self.working_memory = {"tools_used": [], "findings": {}, "iteration_count": 0}
         logger.info("Conversation reset")
 
 
@@ -579,20 +591,20 @@ Remember: You are an AUTONOMOUS AGENT. Act independently, investigate thoroughly
                                 "window_hours": {
                                     "type": "integer",
                                     "description": "Hours of history to retrieve (default: 24). Use larger windows when investigating trends or when recent data seems insufficient.",
-                                    "default": 24
+                                    "default": 24,
                                 },
                                 "dag_id_pattern": {
                                     "type": "string",
-                                    "description": "Optional: SQL LIKE pattern to filter DAG IDs (e.g., 'etl_%' for all ETL DAGs, '%daily%' for daily pipelines). Use when user mentions specific pipeline types or when you want to focus investigation."
+                                    "description": "Optional: SQL LIKE pattern to filter DAG IDs (e.g., 'etl_%' for all ETL DAGs, '%daily%' for daily pipelines). Use when user mentions specific pipeline types or when you want to focus investigation.",
                                 },
                                 "state": {
                                     "type": "string",
                                     "enum": ["success", "failed", "running"],
-                                    "description": "Optional: Filter by execution state. Use 'failed' when investigating failures, 'success' for performance analysis of working pipelines."
-                                }
-                            }
+                                    "description": "Optional: Filter by execution state. Use 'failed' when investigating failures, 'success' for performance analysis of working pipelines.",
+                                },
+                            },
                         }
-                    }
+                    },
                 }
             },
             {
@@ -612,15 +624,15 @@ Remember: You are an AUTONOMOUS AGENT. Act independently, investigate thoroughly
                                 "days": {
                                     "type": "integer",
                                     "description": "Days of historical data to use for baseline calculation (default: 14). More days = more stable baseline but slower to detect recent changes.",
-                                    "default": 14
+                                    "default": 14,
                                 },
                                 "dag_id": {
                                     "type": "string",
-                                    "description": "Optional: Specific DAG to analyze. Omit to get baselines for all DAGs. Use specific DAG when drilling into a particular pipeline."
-                                }
-                            }
+                                    "description": "Optional: Specific DAG to analyze. Omit to get baselines for all DAGs. Use specific DAG when drilling into a particular pipeline.",
+                                },
+                            },
                         }
-                    }
+                    },
                 }
             },
             {
@@ -641,16 +653,16 @@ Remember: You are an AUTONOMOUS AGENT. Act independently, investigate thoroughly
                                     "type": "string",
                                     "enum": ["low", "medium", "high"],
                                     "description": "Detection sensitivity. 'low' = only severe anomalies (>2x baseline), 'medium' = moderate (>1.5x, default), 'high' = catch more potential issues (>1.2x). Use 'high' when user wants comprehensive check.",
-                                    "default": "medium"
+                                    "default": "medium",
                                 },
                                 "focus_area": {
                                     "type": "string",
                                     "enum": ["duration", "failures", "resources"],
-                                    "description": "What to focus detection on. 'duration' = execution time anomalies, 'failures' = failure rate spikes, 'resources' = resource usage patterns. Use based on user's concern."
-                                }
-                            }
+                                    "description": "What to focus detection on. 'duration' = execution time anomalies, 'failures' = failure rate spikes, 'resources' = resource usage patterns. Use based on user's concern.",
+                                },
+                            },
                         }
-                    }
+                    },
                 }
             },
             {
@@ -669,16 +681,16 @@ Remember: You are an AUTONOMOUS AGENT. Act independently, investigate thoroughly
                             "properties": {
                                 "dag_id": {
                                     "type": "string",
-                                    "description": "The DAG identifier to investigate. Use the exact dag_id from previous query results."
+                                    "description": "The DAG identifier to investigate. Use the exact dag_id from previous query results.",
                                 },
                                 "run_id": {
                                     "type": "string",
-                                    "description": "Specific run ID to analyze. Use 'latest' for most recent run, or provide specific run_id from query_dag_runs results."
-                                }
+                                    "description": "Specific run ID to analyze. Use 'latest' for most recent run, or provide specific run_id from query_dag_runs results.",
+                                },
                             },
-                            "required": ["dag_id", "run_id"]
+                            "required": ["dag_id", "run_id"],
                         }
-                    }
+                    },
                 }
             },
             {
@@ -698,24 +710,24 @@ Remember: You are an AUTONOMOUS AGENT. Act independently, investigate thoroughly
                                 "severity": {
                                     "type": "string",
                                     "enum": ["info", "warning", "critical"],
-                                    "description": "Alert severity level. 'info' = normal report (green), 'warning' = issues found (yellow), 'critical' = urgent problems (red). Choose based on findings impact."
+                                    "description": "Alert severity level. 'info' = normal report (green), 'warning' = issues found (yellow), 'critical' = urgent problems (red). Choose based on findings impact.",
                                 },
                                 "title": {
                                     "type": "string",
-                                    "description": "Clear, concise alert title. Examples: 'Performance Anomalies Detected', '3 Pipeline Failures Identified', 'Daily Health Report'."
+                                    "description": "Clear, concise alert title. Examples: 'Performance Anomalies Detected', '3 Pipeline Failures Identified', 'Daily Health Report'.",
                                 },
                                 "message": {
                                     "type": "string",
-                                    "description": "Detailed message body with your analysis. Use markdown formatting. Include: findings, root causes, data/metrics, recommendations. Be comprehensive but clear."
+                                    "description": "Detailed message body with your analysis. Use markdown formatting. Include: findings, root causes, data/metrics, recommendations. Be comprehensive but clear.",
                                 },
                                 "channel": {
                                     "type": "string",
-                                    "description": "Target Slack channel (optional, uses default from config). Override only if user specifies different channel."
-                                }
+                                    "description": "Target Slack channel (optional, uses default from config). Override only if user specifies different channel.",
+                                },
                             },
-                            "required": ["severity", "title", "message"]
+                            "required": ["severity", "title", "message"],
                         }
-                    }
+                    },
                 }
             },
             {
@@ -737,11 +749,11 @@ Remember: You are an AUTONOMOUS AGENT. Act independently, investigate thoroughly
                             "properties": {
                                 "overall_health": {
                                     "type": "number",
-                                    "description": "Overall health percentage (0-100). Calculate from success rate of recent runs."
+                                    "description": "Overall health percentage (0-100). Calculate from success rate of recent runs.",
                                 },
                                 "active_dags": {
                                     "type": "integer",
-                                    "description": "Total number of active DAGs in the system."
+                                    "description": "Total number of active DAGs in the system.",
                                 },
                                 "critical_issues": {
                                     "type": "array",
@@ -754,9 +766,9 @@ Remember: You are an AUTONOMOUS AGENT. Act independently, investigate thoroughly
                                             "baseline_p90": {"type": "number"},
                                             "deviation_factor": {"type": "number"},
                                             "root_cause": {"type": "string"},
-                                            "impact": {"type": "string"}
-                                        }
-                                    }
+                                            "impact": {"type": "string"},
+                                        },
+                                    },
                                 },
                                 "failures": {
                                     "type": "array",
@@ -765,9 +777,9 @@ Remember: You are an AUTONOMOUS AGENT. Act independently, investigate thoroughly
                                         "type": "object",
                                         "properties": {
                                             "dag_id": {"type": "string"},
-                                            "duration_hours": {"type": "number"}
-                                        }
-                                    }
+                                            "duration_hours": {"type": "number"},
+                                        },
+                                    },
                                 },
                                 "recommendations": {
                                     "type": "array",
@@ -775,10 +787,13 @@ Remember: You are an AUTONOMOUS AGENT. Act independently, investigate thoroughly
                                     "items": {
                                         "type": "object",
                                         "properties": {
-                                            "priority": {"type": "string", "enum": ["URGENT", "HIGH", "MEDIUM"]},
-                                            "action": {"type": "string"}
-                                        }
-                                    }
+                                            "priority": {
+                                                "type": "string",
+                                                "enum": ["URGENT", "HIGH", "MEDIUM"],
+                                            },
+                                            "action": {"type": "string"},
+                                        },
+                                    },
                                 },
                                 "consistently_failing_dags": {
                                     "type": "array",
@@ -787,22 +802,38 @@ Remember: You are an AUTONOMOUS AGENT. Act independently, investigate thoroughly
                                         "type": "object",
                                         "properties": {
                                             "dag_id": {"type": "string"},
-                                            "failure_count": {"type": "integer", "description": "Total failures in last 24 hours"},
-                                            "consecutive_failures": {"type": "integer", "description": "Number of consecutive failures"},
-                                            "last_success_date": {"type": "string", "description": "ISO timestamp of last successful run, or 'Never' if no success"}
-                                        }
-                                    }
+                                            "failure_count": {
+                                                "type": "integer",
+                                                "description": "Total failures in last 24 hours",
+                                            },
+                                            "consecutive_failures": {
+                                                "type": "integer",
+                                                "description": "Number of consecutive failures",
+                                            },
+                                            "last_success_date": {
+                                                "type": "string",
+                                                "description": "ISO timestamp of last successful run, or 'Never' if no success",
+                                            },
+                                        },
+                                    },
                                 },
                                 "confidence_level": {
                                     "type": "string",
                                     "enum": ["High", "Medium", "Low"],
                                     "description": "Your confidence level in the analysis (default: High)",
-                                    "default": "High"
-                                }
+                                    "default": "High",
+                                },
                             },
-                            "required": ["overall_health", "active_dags", "critical_issues", "failures", "recommendations", "consistently_failing_dags"]
+                            "required": [
+                                "overall_health",
+                                "active_dags",
+                                "critical_issues",
+                                "failures",
+                                "recommendations",
+                                "consistently_failing_dags",
+                            ],
                         }
-                    }
+                    },
                 }
             },
             {
@@ -822,11 +853,11 @@ Remember: You are an AUTONOMOUS AGENT. Act independently, investigate thoroughly
                                 "include_stale": {
                                     "type": "boolean",
                                     "description": "Include stale/inactive DAGs in analysis (default: true). Set false to focus only on active pipelines.",
-                                    "default": True
+                                    "default": True,
                                 }
-                            }
+                            },
                         }
-                    }
+                    },
                 }
             },
             {
@@ -846,12 +877,12 @@ Remember: You are an AUTONOMOUS AGENT. Act independently, investigate thoroughly
                             "properties": {
                                 "dag_id": {
                                     "type": "string",
-                                    "description": "DAG identifier to recall historical context for"
+                                    "description": "DAG identifier to recall historical context for",
                                 }
                             },
-                            "required": ["dag_id"]
+                            "required": ["dag_id"],
                         }
-                    }
+                    },
                 }
             },
             {
@@ -870,30 +901,30 @@ Remember: You are an AUTONOMOUS AGENT. Act independently, investigate thoroughly
                             "properties": {
                                 "dag_id": {
                                     "type": "string",
-                                    "description": "DAG identifier"
+                                    "description": "DAG identifier",
                                 },
                                 "issue_type": {
                                     "type": "string",
-                                    "description": "Type of issue (e.g., performance_degradation, failure, resource_exhaustion, data_quality)"
+                                    "description": "Type of issue (e.g., performance_degradation, failure, resource_exhaustion, data_quality)",
                                 },
                                 "root_cause": {
                                     "type": "string",
-                                    "description": "Root cause you identified through investigation"
+                                    "description": "Root cause you identified through investigation",
                                 },
                                 "resolution": {
                                     "type": "string",
-                                    "description": "How it was resolved or recommended fix"
+                                    "description": "How it was resolved or recommended fix",
                                 },
                                 "severity": {
                                     "type": "string",
                                     "enum": ["low", "medium", "high", "critical"],
                                     "description": "Severity level of the incident (default: medium)",
-                                    "default": "medium"
-                                }
+                                    "default": "medium",
+                                },
                             },
-                            "required": ["dag_id", "issue_type", "root_cause"]
+                            "required": ["dag_id", "issue_type", "root_cause"],
                         }
-                    }
+                    },
                 }
             },
             {
@@ -915,20 +946,20 @@ Remember: You are an AUTONOMOUS AGENT. Act independently, investigate thoroughly
                             "properties": {
                                 "dag_id": {
                                     "type": "string",
-                                    "description": "DAG identifier to analyze"
+                                    "description": "DAG identifier to analyze",
                                 },
                                 "schedule_type": {
                                     "type": "string",
                                     "enum": ["daily", "weekly", "monthly"],
                                     "description": "DAG schedule frequency. 'daily' = runs daily (analyzes 7 days), 'weekly' = runs weekly (analyzes 3 runs), 'monthly' = runs monthly (analyzes 3 runs). Choose based on DAG's actual schedule.",
-                                    "default": "daily"
-                                }
+                                    "default": "daily",
+                                },
                             },
-                            "required": ["dag_id"]
+                            "required": ["dag_id"],
                         }
-                    }
+                    },
                 }
-            }
+            },
         ]
 
 
@@ -949,7 +980,7 @@ def create_agent(model_id: str, region: str = "us-east-1") -> AirflowIntelligenc
         region=region,
         temperature=0.3,
         max_tokens=4096,
-        max_iterations=10
+        max_iterations=10,
     )
 
 
@@ -965,8 +996,7 @@ if __name__ == "__main__":
     # Example test (would need real AWS credentials)
     try:
         agent = create_agent(
-            model_id="anthropic.claude-3-5-sonnet-20241022-v2:0",
-            region="us-east-1"
+            model_id="anthropic.claude-3-5-sonnet-20241022-v2:0", region="us-east-1"
         )
 
         print("✅ Agent created successfully!")

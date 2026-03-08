@@ -8,6 +8,7 @@ This script tests if your Slack bot token is working and can send messages.
 import os
 import sys
 
+
 def test_slack_connection():
     """Test Slack bot connection."""
 
@@ -76,34 +77,32 @@ def test_slack_connection():
                 "text": {
                     "type": "plain_text",
                     "text": "✅ Slack Connection Test Successful!",
-                    "emoji": True
-                }
+                    "emoji": True,
+                },
             },
             {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": "Your Airflow Intelligence Agent can now send beautiful reports to Slack! 🎉"
-                }
+                    "text": "Your Airflow Intelligence Agent can now send beautiful reports to Slack! 🎉",
+                },
             },
-            {
-                "type": "divider"
-            },
+            {"type": "divider"},
             {
                 "type": "context",
                 "elements": [
                     {
                         "type": "mrkdwn",
-                        "text": "🤖 *Test message from Airflow Intelligence Agent*"
+                        "text": "🤖 *Test message from Airflow Intelligence Agent*",
                     }
-                ]
-            }
+                ],
+            },
         ]
 
         result = client.chat_postMessage(
             channel=slack_channel,
             blocks=test_message_blocks,
-            text="Slack Connection Test"
+            text="Slack Connection Test",
         )
 
         print(f"   ✅ Message sent successfully!")
@@ -116,26 +115,28 @@ def test_slack_connection():
         print("   1. Run a health report:")
         print("      python -m agents.airflow_intelligence.cli report")
         print("\n   2. Or test with example:")
-        print("      python agents/airflow_intelligence/example_beautiful_slack_report.py")
+        print(
+            "      python agents/airflow_intelligence/example_beautiful_slack_report.py"
+        )
 
         return True
 
     except SlackApiError as e:
-        error = e.response['error']
+        error = e.response["error"]
         print(f"\n❌ Slack API Error: {error}")
 
-        if error == 'invalid_auth':
+        if error == "invalid_auth":
             print("\n💡 Your token is invalid or expired")
             print("   Get a new token from: https://api.slack.com/apps")
 
-        elif error == 'channel_not_found':
+        elif error == "channel_not_found":
             print(f"\n💡 Channel '{slack_channel}' not found")
             print("   Make sure:")
             print("   - Channel exists")
             print("   - Bot is invited to the channel")
             print("   - Channel name starts with #")
 
-        elif error == 'not_in_channel':
+        elif error == "not_in_channel":
             print(f"\n💡 Bot is not in channel '{slack_channel}'")
             print("   Invite the bot:")
             print(f"   1. Go to {slack_channel} in Slack")
@@ -149,6 +150,7 @@ def test_slack_connection():
     except Exception as e:
         print(f"\n❌ Unexpected error: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 
@@ -157,6 +159,7 @@ if __name__ == "__main__":
     # Try to load .env file if it exists
     try:
         from dotenv import load_dotenv
+
         load_dotenv()
         print("📄 Loaded .env file\n")
     except ImportError:

@@ -49,10 +49,7 @@ class AgentOrchestrator:
 
         # Initialize the agent
         logger.info("Initializing AI agent...")
-        self.agent = create_agent(
-            model_id=config.model_id,
-            region=config.aws_region
-        )
+        self.agent = create_agent(model_id=config.model_id, region=config.aws_region)
 
         # Override max_iterations if specified
         self.agent.max_iterations = max_iterations
@@ -63,7 +60,7 @@ class AgentOrchestrator:
             db_url=config.airflow_db_url,
             slack_token=config.slack_token if config.enable_slack else None,
             slack_channel=config.slack_channel,
-            anomaly_multiplier=config.anomaly_multiplier
+            anomaly_multiplier=config.anomaly_multiplier,
         )
 
         # Initialize long-term memory system
@@ -71,18 +68,12 @@ class AgentOrchestrator:
         self.memory = AgentMemory()
 
         # Store data for detect_anomalies (needs context from previous calls)
-        self._context_cache: Dict[str, Any] = {
-            "recent_runs": None,
-            "baselines": None
-        }
+        self._context_cache: Dict[str, Any] = {"recent_runs": None, "baselines": None}
 
         logger.info("Orchestrator initialized successfully")
 
     def execute_mission(
-        self,
-        objective: str,
-        show_reasoning: bool = True,
-        return_details: bool = False
+        self, objective: str, show_reasoning: bool = True, return_details: bool = False
     ) -> Dict[str, Any]:
         """
         Execute a mission - give the agent an objective and let it work autonomously.
@@ -113,15 +104,19 @@ class AgentOrchestrator:
                 "success": True,
                 "objective": objective,
                 "response": response_text,
-                "timestamp": datetime.now(timezone.utc).isoformat()
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             }
 
             if return_details:
-                result.update({
-                    "tools_used": self.agent.working_memory.get("tools_used", []),
-                    "iterations": self.agent.working_memory.get("iteration_count", 0),
-                    "findings": self.agent.working_memory.get("findings", {})
-                })
+                result.update(
+                    {
+                        "tools_used": self.agent.working_memory.get("tools_used", []),
+                        "iterations": self.agent.working_memory.get(
+                            "iteration_count", 0
+                        ),
+                        "findings": self.agent.working_memory.get("findings", {}),
+                    }
+                )
 
             return result
 
@@ -133,7 +128,7 @@ class AgentOrchestrator:
                 "success": False,
                 "objective": objective,
                 "error": error_msg,
-                "timestamp": datetime.now(timezone.utc).isoformat()
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             }
 
     def _run_agent_loop(self, user_message: str, show_reasoning: bool) -> str:
@@ -156,10 +151,9 @@ class AgentOrchestrator:
             Agent's final response text
         """
         # Add user message to agent's conversation history
-        self.agent.conversation_history.append({
-            "role": "user",
-            "content": [{"text": user_message}]
-        })
+        self.agent.conversation_history.append(
+            {"role": "user", "content": [{"text": user_message}]}
+        )
 
         # Reset context cache for new mission
         self._context_cache = {"recent_runs": None, "baselines": None}
@@ -169,7 +163,9 @@ class AgentOrchestrator:
             self.agent.working_memory["iteration_count"] = iteration + 1
 
             if show_reasoning:
-                print(f"🤔 Agent thinking (iteration {iteration + 1}/{self.agent.max_iterations})...")
+                print(
+                    f"🤔 Agent thinking (iteration {iteration + 1}/{self.agent.max_iterations})..."
+                )
 
             try:
                 # Agent thinks (calls Bedrock)
@@ -181,13 +177,17 @@ class AgentOrchestrator:
                         print(f"🔧 Agent decided to use tools...")
 
                     # Store the assistant's tool-use message in history FIRST
-                    self.agent.conversation_history.append({
-                        "role": "assistant",
-                        "content": response["output"]["message"]["content"]
-                    })
+                    self.agent.conversation_history.append(
+                        {
+                            "role": "assistant",
+                            "content": response["output"]["message"]["content"],
+                        }
+                    )
 
                     # Extract tool use requests from response
-                    tool_results = self._execute_tools_from_response(response, show_reasoning)
+                    tool_results = self._execute_tools_from_response(
+                        response, show_reasoning
+                    )
 
                     # Add tool results to agent's conversation
                     self.agent._add_tool_results(tool_results)
@@ -200,15 +200,21 @@ class AgentOrchestrator:
                     final_text = self.agent._extract_response_text(response)
 
                     if show_reasoning:
-                        print(f"\n✅ Agent reached conclusion after {iteration + 1} iterations")
-                        print(f"🛠️  Tools used: {len(self.agent.working_memory['tools_used'])}")
+                        print(
+                            f"\n✅ Agent reached conclusion after {iteration + 1} iterations"
+                        )
+                        print(
+                            f"🛠️  Tools used: {len(self.agent.working_memory['tools_used'])}"
+                        )
                         print(f"{'='*80}\n")
 
                     # Store assistant's response in history
-                    self.agent.conversation_history.append({
-                        "role": "assistant",
-                        "content": response["output"]["message"]["content"]
-                    })
+                    self.agent.conversation_history.append(
+                        {
+                            "role": "assistant",
+                            "content": response["output"]["message"]["content"],
+                        }
+                    )
 
                     return final_text
 
@@ -242,15 +248,17 @@ class AgentOrchestrator:
             result["truncated"] = True
             result["total_count"] = total
             result["shown_count"] = self.MAX_RESULT_ITEMS
-            logger.info(f"Truncated result list from {total} to {self.MAX_RESULT_ITEMS} items")
+            logger.info(
+                f"Truncated result list from {total} to {self.MAX_RESULT_ITEMS} items"
+            )
 
         payload = json.dumps(result, default=str)
         if len(payload) > self.MAX_RESULT_JSON_CHARS:
             result = {
                 "success": result.get("success", True),
                 "summary": f"Result too large ({len(payload)} chars). "
-                           f"Returned {result.get('total_count') or result.get('count', '?')} items. "
-                           "Ask a more targeted question or filter by dag_id.",
+                f"Returned {result.get('total_count') or result.get('count', '?')} items. "
+                "Ask a more targeted question or filter by dag_id.",
                 "truncated": True,
             }
             logger.info("Truncated oversized JSON payload to summary")
@@ -258,9 +266,7 @@ class AgentOrchestrator:
         return result
 
     def _execute_tools_from_response(
-        self,
-        response: Dict[str, Any],
-        show_reasoning: bool
+        self, response: Dict[str, Any], show_reasoning: bool
     ) -> List[Dict[str, Any]]:
         """
         Execute tools requested by the agent.
@@ -289,33 +295,31 @@ class AgentOrchestrator:
                     print(f"      Parameters: {json.dumps(tool_input, indent=6)}")
 
                 # Track tool usage
-                self.agent.working_memory["tools_used"].append({
-                    "name": tool_name,
-                    "input": tool_input,
-                    "iteration": self.agent.working_memory["iteration_count"]
-                })
+                self.agent.working_memory["tools_used"].append(
+                    {
+                        "name": tool_name,
+                        "input": tool_input,
+                        "iteration": self.agent.working_memory["iteration_count"],
+                    }
+                )
 
                 # EXECUTE THE TOOL (This is the key part!)
-                tool_result = self._execute_single_tool(tool_name, tool_input, show_reasoning)
+                tool_result = self._execute_single_tool(
+                    tool_name, tool_input, show_reasoning
+                )
 
                 # Truncate large results to prevent context overflow
                 tool_result = self._truncate_tool_result(tool_result)
 
                 # Format result for Bedrock
-                tool_results.append({
-                    "toolUseId": tool_use_id,
-                    "content": [{
-                        "json": tool_result
-                    }]
-                })
+                tool_results.append(
+                    {"toolUseId": tool_use_id, "content": [{"json": tool_result}]}
+                )
 
         return tool_results
 
     def _execute_single_tool(
-        self,
-        tool_name: str,
-        tool_input: Dict[str, Any],
-        show_reasoning: bool
+        self, tool_name: str, tool_input: Dict[str, Any], show_reasoning: bool
     ) -> Dict[str, Any]:
         """
         Execute a single tool and return results.
@@ -344,7 +348,7 @@ class AgentOrchestrator:
                 result = {
                     "success": True,
                     "result": context,
-                    "message": f"Retrieved historical context for {dag_id}"
+                    "message": f"Retrieved historical context for {dag_id}",
                 }
 
             elif tool_name == "store_incident":
@@ -353,14 +357,14 @@ class AgentOrchestrator:
                     issue_type=tool_input.get("issue_type"),
                     root_cause=tool_input.get("root_cause"),
                     resolution=tool_input.get("resolution"),
-                    severity=tool_input.get("severity", "medium")
+                    severity=tool_input.get("severity", "medium"),
                 )
                 result = {
                     "success": True,
                     "result": {
                         "incident_id": incident_id,
-                        "message": "Incident stored in long-term memory for future reference"
-                    }
+                        "message": "Incident stored in long-term memory for future reference",
+                    },
                 }
 
             elif tool_name == "analyze_failure_patterns":
@@ -370,7 +374,7 @@ class AgentOrchestrator:
                 result = {
                     "success": True,
                     "result": analysis,
-                    "message": f"Failure pattern analysis complete for {dag_id}"
+                    "message": f"Failure pattern analysis complete for {dag_id}",
                 }
 
             else:
@@ -380,12 +384,18 @@ class AgentOrchestrator:
                 # Cache results for detect_anomalies
                 if tool_name == "query_dag_runs" and result.get("success"):
                     self._context_cache["recent_runs"] = result.get("result", [])
-                elif tool_name == "analyze_performance_baseline" and result.get("success"):
+                elif tool_name == "analyze_performance_baseline" and result.get(
+                    "success"
+                ):
                     self._context_cache["baselines"] = result.get("result", [])
 
             if show_reasoning:
                 if result.get("success"):
-                    result_count = len(result.get("result", [])) if isinstance(result.get("result"), list) else 1
+                    result_count = (
+                        len(result.get("result", []))
+                        if isinstance(result.get("result"), list)
+                        else 1
+                    )
                     print(f"      ✅ Success: {result_count} results")
                 else:
                     print(f"      ❌ Error: {result.get('error', 'Unknown error')}")
@@ -395,10 +405,7 @@ class AgentOrchestrator:
         except Exception as e:
             error_msg = f"Tool execution error: {str(e)}"
             logger.error(f"{tool_name} failed: {error_msg}")
-            return {
-                "success": False,
-                "error": error_msg
-            }
+            return {"success": False, "error": error_msg}
 
     def _execute_detect_anomalies(self, tool_input: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -417,7 +424,7 @@ class AgentOrchestrator:
             if not recent_runs or not baselines:
                 return {
                     "success": False,
-                    "error": "Missing data: Agent must call query_dag_runs and analyze_performance_baseline first"
+                    "error": "Missing data: Agent must call query_dag_runs and analyze_performance_baseline first",
                 }
 
             # Execute anomaly detection
@@ -425,20 +432,13 @@ class AgentOrchestrator:
                 recent_runs=recent_runs,
                 baselines=baselines,
                 sensitivity=tool_input.get("sensitivity", "medium"),
-                focus_area=tool_input.get("focus_area", "duration")
+                focus_area=tool_input.get("focus_area", "duration"),
             )
 
-            return {
-                "success": True,
-                "result": anomalies,
-                "count": len(anomalies)
-            }
+            return {"success": True, "result": anomalies, "count": len(anomalies)}
 
         except Exception as e:
-            return {
-                "success": False,
-                "error": str(e)
-            }
+            return {"success": False, "error": str(e)}
 
     def interactive_mode(self):
         """
@@ -447,10 +447,12 @@ class AgentOrchestrator:
         This allows users to have a conversation with the agent,
         asking questions and getting intelligent responses.
         """
-        print("\n" + "="*80)
+        print("\n" + "=" * 80)
         print("🤖 Airflow Intelligence Agent - Interactive Mode")
-        print("="*80)
-        print("\nI'm an autonomous AI agent that can investigate your Airflow pipelines!")
+        print("=" * 80)
+        print(
+            "\nI'm an autonomous AI agent that can investigate your Airflow pipelines!"
+        )
         print("\n💡 Example questions:")
         print("   • 'What DAGs failed in the last 24 hours?'")
         print("   • 'Investigate the performance of etl_daily pipeline'")
@@ -459,7 +461,7 @@ class AgentOrchestrator:
         print("\n📝 Commands:")
         print("   • 'reset' - Clear conversation history")
         print("   • 'exit' or 'quit' - Exit interactive mode")
-        print("\n" + "="*80 + "\n")
+        print("\n" + "=" * 80 + "\n")
 
         while True:
             try:
@@ -470,11 +472,11 @@ class AgentOrchestrator:
                     continue
 
                 # Handle commands
-                if user_input.lower() in ['exit', 'quit', 'bye']:
+                if user_input.lower() in ["exit", "quit", "bye"]:
                     print("\n👋 Goodbye! Thanks for using Airflow Intelligence Agent!")
                     break
 
-                if user_input.lower() == 'reset':
+                if user_input.lower() == "reset":
                     self.agent.reset_conversation()
                     self._context_cache = {"recent_runs": None, "baselines": None}
                     print("✅ Conversation reset. Starting fresh!\n")
@@ -483,7 +485,7 @@ class AgentOrchestrator:
                 # Execute mission
                 result = self.execute_mission(
                     objective=user_input,
-                    show_reasoning=False  # Less verbose in interactive mode
+                    show_reasoning=False,  # Less verbose in interactive mode
                 )
 
                 # Display response
@@ -523,9 +525,7 @@ class AgentOrchestrator:
         )
 
         return self.execute_mission(
-            objective=objective,
-            show_reasoning=True,
-            return_details=True
+            objective=objective, show_reasoning=True, return_details=True
         )
 
     def reset(self):
@@ -536,8 +536,7 @@ class AgentOrchestrator:
 
 
 def create_orchestrator(
-    config: Optional[AgentConfig] = None,
-    max_iterations: int = 10
+    config: Optional[AgentConfig] = None, max_iterations: int = 10
 ) -> AgentOrchestrator:
     """
     Factory function to create an orchestrator.
@@ -579,7 +578,9 @@ if __name__ == "__main__":
         print("✅ Orchestrator created successfully!")
         print(f"   Agent model: {orchestrator.config.model_id}")
         print(f"   Database: Connected")
-        print(f"   Slack: {'Enabled' if orchestrator.config.enable_slack else 'Disabled'}")
+        print(
+            f"   Slack: {'Enabled' if orchestrator.config.enable_slack else 'Disabled'}"
+        )
 
         print("\n📋 Available modes:")
         print("   1. execute_mission(objective) - Single objective execution")

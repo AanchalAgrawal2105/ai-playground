@@ -21,7 +21,7 @@ class ToolRegistry:
         db_url: str,
         slack_token: Optional[str] = None,
         slack_channel: str = "#airflow-monitoring",
-        anomaly_multiplier: float = 1.5
+        anomaly_multiplier: float = 1.5,
     ):
         """
         Initialize all tools.
@@ -34,7 +34,9 @@ class ToolRegistry:
         """
         # Initialize tools
         self.db_tools = DatabaseTools(db_url)
-        self.slack_tools = SlackTools(slack_token, slack_channel) if slack_token else None
+        self.slack_tools = (
+            SlackTools(slack_token, slack_channel) if slack_token else None
+        )
         self.analysis_tools = AnalysisTools(anomaly_multiplier)
 
         logger.info("Tool registry initialized")
@@ -78,7 +80,9 @@ class ToolRegistry:
                 if not self.slack_tools:
                     return {"success": False, "error": "Slack not configured"}
                 # Extract data, handling anomalies field
-                anomalies = tool_input.get("anomalies", tool_input.get("critical_issues", []))
+                anomalies = tool_input.get(
+                    "anomalies", tool_input.get("critical_issues", [])
+                )
                 result = self.slack_tools.send_health_report(
                     overall_health=tool_input["overall_health"],
                     active_dags=tool_input["active_dags"],
@@ -86,9 +90,11 @@ class ToolRegistry:
                     failures=tool_input["failures"],
                     anomalies=anomalies,
                     recommendations=tool_input["recommendations"],
-                    consistently_failing_dags=tool_input.get("consistently_failing_dags"),
+                    consistently_failing_dags=tool_input.get(
+                        "consistently_failing_dags"
+                    ),
                     confidence_level=tool_input.get("confidence_level", "High"),
-                    channel=tool_input.get("channel")
+                    channel=tool_input.get("channel"),
                 )
                 return result
 
@@ -97,21 +103,15 @@ class ToolRegistry:
                 # Should be handled by orchestrator
                 return {
                     "success": False,
-                    "error": "detect_anomalies requires orchestrator context"
+                    "error": "detect_anomalies requires orchestrator context",
                 }
 
             else:
-                return {
-                    "success": False,
-                    "error": f"Unknown tool: {tool_name}"
-                }
+                return {"success": False, "error": f"Unknown tool: {tool_name}"}
 
         except Exception as e:
             logger.error(f"Error executing tool {tool_name}: {e}")
-            return {
-                "success": False,
-                "error": str(e)
-            }
+            return {"success": False, "error": str(e)}
 
 
 if __name__ == "__main__":

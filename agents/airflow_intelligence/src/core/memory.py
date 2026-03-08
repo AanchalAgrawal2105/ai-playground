@@ -68,7 +68,7 @@ class AgentMemory:
         root_cause: str,
         resolution: Optional[str] = None,
         severity: str = "medium",
-        metadata: Optional[Dict] = None
+        metadata: Optional[Dict] = None,
     ) -> str:
         """
         Store an incident for future reference.
@@ -94,7 +94,7 @@ class AgentMemory:
             "root_cause": root_cause,
             "resolution": resolution,
             "severity": severity,
-            "metadata": metadata or {}
+            "metadata": metadata or {},
         }
 
         with open(self.incidents_file, "a") as f:
@@ -104,9 +104,7 @@ class AgentMemory:
         return incident_id
 
     def recall_similar_incidents(
-        self,
-        dag_id: str,
-        limit: int = 5
+        self, dag_id: str, limit: int = 5
     ) -> List[Dict[str, Any]]:
         """
         Recall similar past incidents for a DAG.
@@ -157,7 +155,7 @@ class AgentMemory:
             return {
                 "dag_id": dag_id,
                 "has_history": False,
-                "message": "No previous incidents found"
+                "message": "No previous incidents found",
             }
 
         # Calculate statistics
@@ -175,7 +173,7 @@ class AgentMemory:
             "last_incident_date": incidents[0]["timestamp"],
             "severity_distribution": severity_counts,
             "recent_incidents": incidents[:3],  # Last 3
-            "patterns": self._detect_patterns(incidents)
+            "patterns": self._detect_patterns(incidents),
         }
 
     def _detect_patterns(self, incidents: List[Dict]) -> List[str]:
@@ -188,7 +186,9 @@ class AgentMemory:
         # Check for recurring issues
         root_causes = [i["root_cause"] for i in incidents]
         if len(set(root_causes)) == 1:
-            patterns.append(f"Recurring issue: '{root_causes[0]}' happened {len(root_causes)} times")
+            patterns.append(
+                f"Recurring issue: '{root_causes[0]}' happened {len(root_causes)} times"
+            )
 
         # Check for increasing frequency
         if len(incidents) >= 3:
@@ -201,7 +201,9 @@ class AgentMemory:
     def _is_increasing_frequency(self, recent_incidents: List[Dict]) -> bool:
         """Check if incidents are increasing in frequency."""
         try:
-            timestamps = [datetime.fromisoformat(i["timestamp"]) for i in recent_incidents]
+            timestamps = [
+                datetime.fromisoformat(i["timestamp"]) for i in recent_incidents
+            ]
             timestamps.sort()
 
             # Check if time between incidents is decreasing
@@ -217,7 +219,7 @@ class AgentMemory:
         pattern_type: str,
         description: str,
         affected_dags: List[str],
-        confidence: float
+        confidence: float,
     ) -> str:
         """
         Store a discovered pattern.
@@ -239,7 +241,7 @@ class AgentMemory:
             "pattern_type": pattern_type,
             "description": description,
             "affected_dags": affected_dags,
-            "confidence": confidence
+            "confidence": confidence,
         }
 
         with open(self.patterns_file, "a") as f:
@@ -289,10 +291,7 @@ class AgentMemory:
                     context = json.load(f)
 
             # Update context
-            context[key] = {
-                "value": value,
-                "timestamp": datetime.utcnow().isoformat()
-            }
+            context[key] = {"value": value, "timestamp": datetime.utcnow().isoformat()}
 
             # Save context
             with open(self.context_file, "w") as f:
@@ -317,9 +316,7 @@ class AgentMemory:
             return None
 
     def analyze_failure_patterns(
-        self,
-        dag_id: str,
-        schedule_type: str = "daily"
+        self, dag_id: str, schedule_type: str = "daily"
     ) -> Dict[str, Any]:
         """
         Analyze failure patterns based on DAG schedule.
@@ -347,7 +344,7 @@ class AgentMemory:
                 "dag_id": dag_id,
                 "is_chronic_failure": False,
                 "failure_count": 0,
-                "message": "No historical data available"
+                "message": "No historical data available",
             }
 
         try:
@@ -366,7 +363,7 @@ class AgentMemory:
                     "schedule_type": schedule_type,
                     "is_chronic_failure": False,
                     "failure_count": 0,
-                    "message": "No incidents found for this DAG"
+                    "message": "No incidents found for this DAG",
                 }
 
             # Sort by timestamp, most recent first
@@ -376,23 +373,19 @@ class AgentMemory:
             if schedule_type.lower() == "daily":
                 return self._analyze_daily_failures(dag_id, incidents)
             elif schedule_type.lower() in ["weekly", "monthly"]:
-                return self._analyze_consecutive_failures(dag_id, incidents, schedule_type)
+                return self._analyze_consecutive_failures(
+                    dag_id, incidents, schedule_type
+                )
             else:
                 # Default to daily analysis
                 return self._analyze_daily_failures(dag_id, incidents)
 
         except Exception as e:
             logger.error(f"Error analyzing failure patterns: {e}")
-            return {
-                "dag_id": dag_id,
-                "error": str(e),
-                "is_chronic_failure": False
-            }
+            return {"dag_id": dag_id, "error": str(e), "is_chronic_failure": False}
 
     def _analyze_daily_failures(
-        self,
-        dag_id: str,
-        incidents: List[Dict]
+        self, dag_id: str, incidents: List[Dict]
     ) -> Dict[str, Any]:
         """
         Analyze failures for daily DAGs (7-day window).
@@ -442,7 +435,9 @@ class AgentMemory:
         if is_chronic:
             recommendation = f"URGENT: DAG is chronically failing ({failure_count} failures in 7 days). Immediate investigation required."
         elif failure_count >= 2:
-            recommendation = f"Monitor closely: {failure_count} failures detected in the last week."
+            recommendation = (
+                f"Monitor closely: {failure_count} failures detected in the last week."
+            )
         else:
             recommendation = "No immediate action required."
 
@@ -460,14 +455,11 @@ class AgentMemory:
             "consecutive_failures": consecutive,
             "severity": severity,
             "recommendation": recommendation,
-            "recent_incidents": failure_incidents[:5]  # Return up to 5 most recent
+            "recent_incidents": failure_incidents[:5],  # Return up to 5 most recent
         }
 
     def _analyze_consecutive_failures(
-        self,
-        dag_id: str,
-        incidents: List[Dict],
-        schedule_type: str
+        self, dag_id: str, incidents: List[Dict], schedule_type: str
     ) -> Dict[str, Any]:
         """
         Analyze failures for weekly/monthly DAGs (last 3 runs).
@@ -478,8 +470,7 @@ class AgentMemory:
         # Take the 3 most recent incidents
         recent_incidents = incidents[:3]
         failure_incidents = [
-            i for i in recent_incidents
-            if i.get("issue_type") == "failure"
+            i for i in recent_incidents if i.get("issue_type") == "failure"
         ]
 
         failure_count = len(failure_incidents)
@@ -517,11 +508,13 @@ class AgentMemory:
             "is_chronic_failure": is_chronic,
             "failure_count": failure_count,
             "total_runs_analyzed": total_analyzed,
-            "failure_rate": round((failure_count / total_analyzed * 100) if total_analyzed > 0 else 0, 1),
+            "failure_rate": round(
+                (failure_count / total_analyzed * 100) if total_analyzed > 0 else 0, 1
+            ),
             "consecutive_failures": consecutive,
             "severity": severity,
             "recommendation": recommendation,
-            "recent_incidents": failure_incidents
+            "recent_incidents": failure_incidents,
         }
 
     def _count_consecutive_failures(self, incidents: List[Dict]) -> int:
@@ -558,7 +551,7 @@ if __name__ == "__main__":
         root_cause="Spark memory overflow - heap space exhausted",
         resolution="Increased memory allocation from 8GB to 24GB",
         severity="high",
-        metadata={"duration_increase": "3.5x", "baseline": "45m", "actual": "3.5h"}
+        metadata={"duration_increase": "3.5x", "baseline": "45m", "actual": "3.5h"},
     )
 
     memory.store_incident(
@@ -567,7 +560,7 @@ if __name__ == "__main__":
         root_cause="Spark memory overflow - heap space exhausted",
         resolution="Optimized data partitioning",
         severity="medium",
-        metadata={"duration_increase": "2.1x"}
+        metadata={"duration_increase": "2.1x"},
     )
 
     print("✅ Incidents stored\n")
@@ -594,7 +587,7 @@ if __name__ == "__main__":
         pattern_type="memory_overflow",
         description="ETL pipelines experiencing memory issues during peak hours",
         affected_dags=["etl_daily", "etl_hourly"],
-        confidence=0.92
+        confidence=0.92,
     )
 
     print("\n✅ Memory system working!\n")

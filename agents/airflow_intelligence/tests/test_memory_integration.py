@@ -8,24 +8,32 @@ It shows the agent storing and recalling incidents across sessions.
 
 import sys
 from pathlib import Path
+import tempfile
+import shutil
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from agents.airflow_intelligence.memory import AgentMemory
+from agents.airflow_intelligence.src.core.memory import AgentMemory
+
+
+def get_temp_memory():
+    """Create AgentMemory with temporary directory for testing."""
+    temp_dir = tempfile.mkdtemp()
+    return AgentMemory(memory_dir=temp_dir), temp_dir
 
 
 def test_memory_system():
     """Test the memory system independently."""
 
-    print("="*80)
+    print("=" * 80)
     print("🧠 Testing Agent Memory System (Phase 1)")
-    print("="*80)
+    print("=" * 80)
     print()
 
     # Initialize memory
     print("1️⃣  Initializing memory system...")
-    memory = AgentMemory()
+    memory, temp_dir = get_temp_memory()
     print(f"   ✅ Memory initialized at: {memory.memory_dir}")
     print()
 
@@ -37,7 +45,7 @@ def test_memory_system():
         issue_type="performance_degradation",
         root_cause="Spark memory overflow - heap space exhausted",
         resolution="Increased memory allocation from 8GB to 24GB",
-        severity="high"
+        severity="high",
     )
     print(f"   ✅ Stored incident: {incident1}")
 
@@ -46,7 +54,7 @@ def test_memory_system():
         issue_type="performance_degradation",
         root_cause="Spark memory overflow - heap space exhausted",
         resolution="Optimized data partitioning",
-        severity="medium"
+        severity="medium",
     )
     print(f"   ✅ Stored incident: {incident2}")
 
@@ -55,7 +63,7 @@ def test_memory_system():
         issue_type="failure",
         root_cause="Database connection timeout - network issues",
         resolution="Increased connection timeout to 60 seconds",
-        severity="critical"
+        severity="critical",
     )
     print(f"   ✅ Stored incident: {incident3}")
     print()
@@ -84,9 +92,9 @@ def test_memory_system():
         print(f"   📅 Last Incident: {context['last_incident_date']}")
         print(f"   ⚠️  Severity Distribution: {context['severity_distribution']}")
 
-        if context.get('patterns'):
+        if context.get("patterns"):
             print(f"   🔍 Patterns Detected:")
-            for pattern in context['patterns']:
+            for pattern in context["patterns"]:
                 print(f"      • {pattern}")
     else:
         print(f"   ℹ️  No history found")
@@ -98,7 +106,7 @@ def test_memory_system():
         pattern_type="memory_overflow_during_peak_hours",
         description="ETL pipelines experiencing memory issues during peak hours (8am-10am)",
         affected_dags=["etl_daily", "etl_hourly"],
-        confidence=0.92
+        confidence=0.92,
     )
     print(f"   ✅ Stored pattern: {pattern_id}")
     print()
@@ -117,9 +125,9 @@ def test_memory_system():
     print()
 
     # Summary
-    print("="*80)
+    print("=" * 80)
     print("✅ Memory System Test Complete!")
-    print("="*80)
+    print("=" * 80)
     print()
     print("🎉 The agent now has long-term memory!")
     print()
@@ -141,22 +149,24 @@ def test_memory_system():
     print("   Agent will recall this historical context!")
     print()
 
+    # Cleanup
+    shutil.rmtree(temp_dir, ignore_errors=True)
+
 
 def test_agent_integration():
     """Test that agent tools are properly connected."""
 
-    print("="*80)
+    print("=" * 80)
     print("🤖 Testing Agent Integration")
-    print("="*80)
+    print("=" * 80)
     print()
 
     try:
-        from agents.airflow_intelligence.agent import create_agent
+        from agents.airflow_intelligence.src.core.agent import create_agent
 
         print("1️⃣  Creating agent...")
         agent = create_agent(
-            model_id="anthropic.claude-3-5-sonnet-20241022-v2:0",
-            region="us-east-1"
+            model_id="anthropic.claude-3-5-sonnet-20241022-v2:0", region="us-east-1"
         )
         print("   ✅ Agent created successfully")
         print()
@@ -179,9 +189,9 @@ def test_agent_integration():
                 print(f"   ❌ {tool_name} - MISSING")
         print()
 
-        print("="*80)
+        print("=" * 80)
         print("✅ Agent Integration Test Complete!")
-        print("="*80)
+        print("=" * 80)
         print()
         print("🎉 Memory tools successfully integrated into agent!")
         print()
@@ -210,9 +220,9 @@ if __name__ == "__main__":
     test_agent_integration()
 
     print()
-    print("="*80)
+    print("=" * 80)
     print("🎊 ALL TESTS COMPLETE!")
-    print("="*80)
+    print("=" * 80)
     print()
     print("📚 Read PHASE1_COMPLETE.md for full documentation")
     print("🚀 Your agent now has long-term memory!")

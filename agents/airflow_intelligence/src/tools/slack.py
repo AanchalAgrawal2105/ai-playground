@@ -34,11 +34,7 @@ class SlackTools:
         logger.info(f"Slack client initialized (default channel: {default_channel})")
 
     def send_slack_alert(
-        self,
-        severity: str,
-        title: str,
-        message: str,
-        channel: Optional[str] = None
+        self, severity: str, title: str, message: str, channel: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Send formatted alert to Slack.
@@ -57,9 +53,9 @@ class SlackTools:
 
             # Map severity to color
             color_map = {
-                "info": "#36a64f",      # Green
-                "warning": "#ff9900",   # Orange
-                "critical": "#ff0000"   # Red
+                "info": "#36a64f",  # Green
+                "warning": "#ff9900",  # Orange
+                "critical": "#ff0000",  # Red
             }
             color = color_map.get(severity, "#808080")
 
@@ -67,28 +63,18 @@ class SlackTools:
             blocks = [
                 {
                     "type": "header",
-                    "text": {
-                        "type": "plain_text",
-                        "text": title,
-                        "emoji": True
-                    }
+                    "text": {"type": "plain_text", "text": title, "emoji": True},
                 },
-                {
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": message
-                    }
-                },
+                {"type": "section", "text": {"type": "mrkdwn", "text": message}},
                 {
                     "type": "context",
                     "elements": [
                         {
                             "type": "mrkdwn",
-                            "text": f"🤖 *Airflow Intelligence Agent* | {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}"
+                            "text": f"🤖 *Airflow Intelligence Agent* | {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}",
                         }
-                    ]
-                }
+                    ],
+                },
             ]
 
             # Send message
@@ -96,10 +82,7 @@ class SlackTools:
                 channel=target_channel,
                 blocks=blocks,
                 text=title,  # Fallback text for notifications
-                attachments=[{
-                    "color": color,
-                    "fallback": title
-                }]
+                attachments=[{"color": color, "fallback": title}],
             )
 
             logger.info(f"Slack alert sent to {target_channel}: {title}")
@@ -108,23 +91,17 @@ class SlackTools:
                 "success": True,
                 "channel": target_channel,
                 "timestamp": response["ts"],
-                "message": f"Alert sent successfully to {target_channel}"
+                "message": f"Alert sent successfully to {target_channel}",
             }
 
         except SlackApiError as e:
             error_msg = f"Slack API error: {e.response['error']}"
             logger.error(error_msg)
-            return {
-                "success": False,
-                "error": error_msg
-            }
+            return {"success": False, "error": error_msg}
         except Exception as e:
             error_msg = f"Unexpected error sending Slack alert: {str(e)}"
             logger.error(error_msg)
-            return {
-                "success": False,
-                "error": error_msg
-            }
+            return {"success": False, "error": error_msg}
 
     def send_health_report(
         self,
@@ -136,7 +113,7 @@ class SlackTools:
         recommendations: List[Dict[str, str]],
         consistently_failing_dags: Optional[List[Dict[str, Any]]] = None,
         confidence_level: str = "High",
-        channel: Optional[str] = None
+        channel: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
         Send a beautifully formatted health report to Slack.
@@ -167,7 +144,7 @@ class SlackTools:
                 anomalies=anomalies,
                 recommendations=recommendations,
                 consistently_failing_dags=consistently_failing_dags,
-                confidence_level=confidence_level
+                confidence_level=confidence_level,
             )
 
             # Determine severity for attachment color
@@ -183,35 +160,33 @@ class SlackTools:
                 channel=target_channel,
                 blocks=blocks,
                 text=f"Airflow Pipeline Health Report - {overall_health:.1f}% Health",
-                attachments=[{
-                    "color": self.formatter.get_attachment_color(severity),
-                    "fallback": f"Health Report - {overall_health:.1f}%"
-                }]
+                attachments=[
+                    {
+                        "color": self.formatter.get_attachment_color(severity),
+                        "fallback": f"Health Report - {overall_health:.1f}%",
+                    }
+                ],
             )
 
-            logger.info(f"Health report sent to {target_channel}: {overall_health:.1f}% health")
+            logger.info(
+                f"Health report sent to {target_channel}: {overall_health:.1f}% health"
+            )
 
             return {
                 "success": True,
                 "channel": target_channel,
                 "timestamp": response["ts"],
-                "message": f"Health report sent successfully to {target_channel}"
+                "message": f"Health report sent successfully to {target_channel}",
             }
 
         except SlackApiError as e:
             error_msg = f"Slack API error: {e.response['error']}"
             logger.error(error_msg)
-            return {
-                "success": False,
-                "error": error_msg
-            }
+            return {"success": False, "error": error_msg}
         except Exception as e:
             error_msg = f"Unexpected error sending health report: {str(e)}"
             logger.error(error_msg)
-            return {
-                "success": False,
-                "error": error_msg
-            }
+            return {"success": False, "error": error_msg}
 
     def send_formatted_alert(
         self,
@@ -219,7 +194,7 @@ class SlackTools:
         title: str,
         message: str,
         fields: Optional[Dict[str, str]] = None,
-        channel: Optional[str] = None
+        channel: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
         Send a formatted alert with enhanced visual structure.
@@ -239,10 +214,7 @@ class SlackTools:
 
             # Generate formatted blocks
             blocks = self.formatter.create_simple_alert_blocks(
-                severity=severity,
-                title=title,
-                message=message,
-                fields=fields
+                severity=severity, title=title, message=message, fields=fields
             )
 
             # Send message
@@ -250,10 +222,12 @@ class SlackTools:
                 channel=target_channel,
                 blocks=blocks,
                 text=title,
-                attachments=[{
-                    "color": self.formatter.get_attachment_color(severity),
-                    "fallback": title
-                }]
+                attachments=[
+                    {
+                        "color": self.formatter.get_attachment_color(severity),
+                        "fallback": title,
+                    }
+                ],
             )
 
             logger.info(f"Formatted alert sent to {target_channel}: {title}")
@@ -262,21 +236,14 @@ class SlackTools:
                 "success": True,
                 "channel": target_channel,
                 "timestamp": response["ts"],
-                "message": f"Alert sent successfully to {target_channel}"
+                "message": f"Alert sent successfully to {target_channel}",
             }
 
         except SlackApiError as e:
             error_msg = f"Slack API error: {e.response['error']}"
             logger.error(error_msg)
-            return {
-                "success": False,
-                "error": error_msg
-            }
+            return {"success": False, "error": error_msg}
         except Exception as e:
             error_msg = f"Unexpected error sending formatted alert: {str(e)}"
             logger.error(error_msg)
-            return {
-                "success": False,
-                "error": error_msg
-            }
-
+            return {"success": False, "error": error_msg}
