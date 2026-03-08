@@ -2,6 +2,8 @@
 
 An autonomous AI agent for intelligent Airflow pipeline monitoring, anomaly detection, and optimization recommendations.
 
+**📖 For comprehensive documentation, see [PROJECT_OVERVIEW.md](PROJECT_OVERVIEW.md)**
+
 ## 🎯 What Makes This "Agentic"?
 
 Unlike traditional monitoring systems, this agent:
