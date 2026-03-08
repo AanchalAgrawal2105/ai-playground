@@ -28,7 +28,6 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
-          pip install -r requirements.txt
           pip install -r agents/airflow_intelligence/requirements.txt
 
       - name: Run black (code formatting check)
@@ -68,7 +67,6 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
           pip install -r requirements-dev.txt
           pip install -r agents/airflow_intelligence/requirements.txt
 
@@ -152,7 +150,6 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
           pip install -r agents/airflow_intelligence/requirements.txt
 
       - name: Test all imports
@@ -185,7 +182,7 @@ jobs:
             "README.md"
             "LICENSE"
             "agents/airflow_intelligence/README.md"
-            "agents/airflow_intelligence/STRUCTURE.md"
+            "agents/airflow_intelligence/PROJECT_OVERVIEW.md"
           )
 
           for doc in "${required_docs[@]}"; do
