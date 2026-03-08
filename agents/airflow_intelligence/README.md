@@ -29,7 +29,7 @@ source .venv/bin/activate  # On macOS/Linux
 uv pip install -r requirements.txt
 
 # Set up environment
-cp ../../.env.template .env
+cp .env.example .env
 # Edit .env with your credentials
 ```
 
@@ -143,18 +143,43 @@ result = agent.execute_mission(
 
 ## 🔧 Configuration
 
-See `config.py` for all configuration options. Key settings:
+All configuration is loaded from `.env` file. Copy `.env.example` and fill in your values:
 
-```python
-AgentConfig(
-    airflow_db_url="postgresql://...",    # Required
-    model_id="anthropic.claude-...",      # Bedrock model
-    temperature=0.3,                      # Agent creativity (0=deterministic)
-    window_hours=24,                      # Default lookback window
-    baseline_days=14,                     # Baseline calculation period
-    enable_slack=True,                    # Enable Slack notifications
-)
+```bash
+# Database (Required)
+AIRFLOW_DB_URL=postgresql://user:pass@host:5432/airflow
+
+# AWS Bedrock (Required)
+AWS_REGION=eu-west-1
+MODEL_ID=anthropic.claude-sonnet-4-20250514-v1:0
+AWS_ACCESS_KEY_ID=your_key          # Optional if using IAM role
+AWS_SECRET_ACCESS_KEY=your_secret   # Optional if using IAM role
+AWS_SESSION_TOKEN=your_token        # Optional
+
+# Slack (Required config, optional token)
+SLACK_BOT_TOKEN=xoxb-your-token     # Leave blank if not using Slack
+SLACK_CHANNEL=#airflow-alerts
+SLACK_USERNAME=Airflow Intelligence Agent
+ENABLE_SLACK_NOTIFICATIONS=false
+
+# Agent Behavior (Required)
+AGENT_TEMPERATURE=0.3               # 0.0-1.0, higher = more creative
+AGENT_MAX_TOKENS=4096              # Max tokens per response
+AGENT_MAX_ITERATIONS=10            # Max reasoning loops
+
+# Monitoring Configuration (Required)
+WINDOW_HOURS=24                    # Hours to look back for failures
+BASELINE_DAYS=14                   # Days for baseline calculation
+MIN_HISTORY=10                     # Min runs required for baseline
+ANOMALY_MULTIPLIER=1.5             # Duration > baseline * multiplier = anomaly
+STALE_DAG_THRESHOLD_DAYS=10        # Days before DAG considered stale
+
+# Performance (Required)
+QUERY_TIMEOUT=30                   # Database query timeout (seconds)
+MAX_RESULTS=1000                   # Maximum results per query
 ```
+
+See `.env.example` for detailed descriptions of each variable.
 
 ## 🆚 vs MCP Approach
 
