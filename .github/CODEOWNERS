@@ -3,30 +3,30 @@
 
 # Default owner for everything in the repo
 # Replace with your GitHub username or team
-* @YOUR_GITHUB_USERNAME
+* @AanchalAgrawal2105
 
 # Airflow Intelligence Agent
-/agents/airflow_intelligence/ @YOUR_GITHUB_USERNAME
+/agents/airflow_intelligence/ @AanchalAgrawal2105
 
 # CI/CD and workflows
-/.github/ @YOUR_GITHUB_USERNAME
+/.github/ @AanchalAgrawal2105
 
 # Documentation
-*.md @YOUR_GITHUB_USERNAME
-/docs/ @YOUR_GITHUB_USERNAME
-/agents/*/docs/ @YOUR_GITHUB_USERNAME
+*.md @AanchalAgrawal2105
+/docs/ @AanchalAgrawal2105
+/agents/*/docs/ @AanchalAgrawal2105
 
 # Deployment configurations
-/agents/*/deploy/ @YOUR_GITHUB_USERNAME
-**/Dockerfile @YOUR_GITHUB_USERNAME
-**/docker-compose*.yml @YOUR_GITHUB_USERNAME
-**/kubernetes/ @YOUR_GITHUB_USERNAME
+/agents/*/deploy/ @AanchalAgrawal2105
+**/Dockerfile @AanchalAgrawal2105
+**/docker-compose*.yml @AanchalAgrawal2105
+**/kubernetes/ @AanchalAgrawal2105
 
 # Security-sensitive files
-.env.template @YOUR_GITHUB_USERNAME
-**/requirements*.txt @YOUR_GITHUB_USERNAME
-/.github/workflows/ @YOUR_GITHUB_USERNAME
+.env.template @AanchalAgrawal2105
+**/requirements*.txt @AanchalAgrawal2105
+/.github/workflows/ @AanchalAgrawal2105
 
 # Tests
-/tests/ @YOUR_GITHUB_USERNAME
-/agents/*/tests/ @YOUR_GITHUB_USERNAME
+/tests/ @AanchalAgrawal2105
+/agents/*/tests/ @AanchalAgrawal2105
