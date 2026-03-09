@@ -105,7 +105,7 @@ def test_slack_connection():
             text="Slack Connection Test",
         )
 
-        print(f"   ✅ Message sent successfully!")
+        print("   ✅ Message sent successfully!")
         print(f"   ✅ Message timestamp: {result['ts']}")
         print(f"   ✅ Channel: {result['channel']}")
 
@@ -165,7 +165,7 @@ if __name__ == "__main__":
     except ImportError:
         print("ℹ️  python-dotenv not installed (optional)")
         print("   Install with: pip install python-dotenv\n")
-    except:
+    except Exception:
         print("ℹ️  No .env file found (using environment variables)\n")
 
     success = test_slack_connection()

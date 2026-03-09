@@ -12,7 +12,6 @@ Usage:
 
 import argparse
 import logging
-import os
 import sys
 from pathlib import Path
 from typing import Optional
@@ -39,7 +38,7 @@ except ImportError:
     print("⚠️  Rich library not installed. Install with: uv pip install rich")
     print("   Falling back to basic output.\n")
 
-from ..core import AgentOrchestrator, create_orchestrator
+from ..core import AgentOrchestrator, create_orchestrator  # noqa: E402
 
 # Set up logging
 logging.basicConfig(
@@ -152,7 +151,7 @@ Powered by Claude AI + AWS Bedrock
             print("\nConfiguration:")
             print(f"  Model: {config.model_id}")
             print(f"  Region: {config.aws_region}")
-            print(f"  Database: Connected")
+            print("  Database: Connected")
             print(f"  Slack: {'Enabled' if config.enable_slack else 'Disabled'}")
             print()
 
@@ -326,7 +325,7 @@ Powered by Claude AI + AWS Bedrock
         self.print("\n[bold cyan]🤖 Starting Proactive Monitoring Mode[/bold cyan]\n")
         self.print(f"[dim]Check interval: {interval} minutes[/dim]")
         self.print(
-            f"[dim]Agent will run continuously and decide autonomously when to alert[/dim]\n"
+            "[dim]Agent will run continuously and decide autonomously when to alert[/dim]\n"
         )
 
         try:
@@ -339,7 +338,7 @@ Powered by Claude AI + AWS Bedrock
             # Validate config
             errors = config.validate()
             if errors:
-                self.print(f"[bold red]❌ Configuration Error:[/bold red]")
+                self.print("[bold red]❌ Configuration Error:[/bold red]")
                 for error in errors:
                     self.print(f"   • {error}")
                 return 1

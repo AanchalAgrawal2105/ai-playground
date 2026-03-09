@@ -14,7 +14,7 @@ from pathlib import Path
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from agents.airflow_intelligence import AgentMemory
+from agents.airflow_intelligence import AgentMemory  # noqa: E402
 
 
 def get_temp_memory():
@@ -86,18 +86,18 @@ def test_memory_system():
     context = memory.get_dag_context("etl_daily")
 
     if context.get("has_history"):
-        print(f"   ✅ Has History: YES")
+        print("   ✅ Has History: YES")
         print(f"   📊 Total Incidents: {context['incident_count']}")
         print(f"   🎯 Most Common Root Cause: {context['most_common_root_cause']}")
         print(f"   📅 Last Incident: {context['last_incident_date']}")
         print(f"   ⚠️  Severity Distribution: {context['severity_distribution']}")
 
         if context.get("patterns"):
-            print(f"   🔍 Patterns Detected:")
+            print("   🔍 Patterns Detected:")
             for pattern in context["patterns"]:
                 print(f"      • {pattern}")
     else:
-        print(f"   ℹ️  No history found")
+        print("   ℹ️  No history found")
     print()
 
     # Store a pattern

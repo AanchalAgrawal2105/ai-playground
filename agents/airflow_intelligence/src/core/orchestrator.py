@@ -17,8 +17,8 @@ import logging
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-from ..tools import AnalysisTools, DatabaseTools, SlackTools, ToolRegistry
-from .agent import AirflowIntelligenceAgent, create_agent
+from ..tools import ToolRegistry
+from .agent import create_agent
 from .config import AgentConfig
 from .memory import AgentMemory
 
@@ -174,7 +174,7 @@ class AgentOrchestrator:
                 # Check if agent wants to use tools
                 if self.agent._has_tool_use(response):
                     if show_reasoning:
-                        print(f"🔧 Agent decided to use tools...")
+                        print("🔧 Agent decided to use tools...")
 
                     # Store the assistant's tool-use message in history FIRST
                     self.agent.conversation_history.append(
@@ -577,7 +577,7 @@ if __name__ == "__main__":
 
         print("✅ Orchestrator created successfully!")
         print(f"   Agent model: {orchestrator.config.model_id}")
-        print(f"   Database: Connected")
+        print("   Database: Connected")
         print(
             f"   Slack: {'Enabled' if orchestrator.config.enable_slack else 'Disabled'}"
         )

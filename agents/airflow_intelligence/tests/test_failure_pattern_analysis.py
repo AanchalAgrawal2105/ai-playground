@@ -9,13 +9,13 @@ It simulates different failure scenarios and shows how the agent detects pattern
 import shutil
 import sys
 import tempfile
-from datetime import datetime, timedelta
+
 from pathlib import Path
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from agents.airflow_intelligence import AgentMemory
+from agents.airflow_intelligence import AgentMemory  # noqa: E402
 
 
 def get_temp_memory():
@@ -46,9 +46,9 @@ def print_analysis_result(result):
     severity = result.get("severity", "unknown")
 
     if is_chronic:
-        print(f"   Status: ⚠️ CHRONIC FAILURE")
+        print("   Status: ⚠️ CHRONIC FAILURE")
     else:
-        print(f"   Status: ✅ Not Chronic")
+        print("   Status: ✅ Not Chronic")
 
     print(f"   Severity: {severity.upper()}")
     print(f"   Recommendation: {result.get('recommendation', 'N/A')}")
@@ -79,7 +79,7 @@ def test_daily_dag_chronic_failure():
     print_analysis_result(result)
 
     # Verify
-    assert result["is_chronic_failure"] == True, "Should detect chronic failure"
+    assert result["is_chronic_failure"] is True, "Should detect chronic failure"
     assert result["severity"] in ["high", "critical"], "Should be high severity"
     print("✅ Test passed: Chronic failure correctly detected!\n")
 
@@ -110,7 +110,7 @@ def test_daily_dag_not_chronic():
     print_analysis_result(result)
 
     # Verify
-    assert result["is_chronic_failure"] == False, "Should NOT detect chronic failure"
+    assert result["is_chronic_failure"] is False, "Should NOT detect chronic failure"
     print("✅ Test passed: Not chronic (as expected)\n")
 
     # Cleanup
@@ -140,7 +140,7 @@ def test_weekly_dag_chronic_failure():
     print_analysis_result(result)
 
     # Verify
-    assert result["is_chronic_failure"] == True, "Should detect chronic failure"
+    assert result["is_chronic_failure"] is True, "Should detect chronic failure"
     assert result["severity"] == "critical", "Should be critical severity"
     assert result["failure_count"] == 3, "Should have 3 failures"
     print("✅ Test passed: Weekly chronic failure correctly detected!\n")
@@ -187,7 +187,7 @@ def test_monthly_dag_partial_failures():
 
     # Verify
     assert (
-        result["is_chronic_failure"] == False
+        result["is_chronic_failure"] is False
     ), "Should NOT be chronic (only 2/3 failed)"
     assert result["severity"] in ["high", "medium"], "Should be high severity"
     print("✅ Test passed: Not chronic with 2/3 failures (as expected)\n")
@@ -207,7 +207,7 @@ def test_no_history():
     print_analysis_result(result)
 
     # Verify
-    assert result["is_chronic_failure"] == False, "Should not be chronic with no data"
+    assert result["is_chronic_failure"] is False, "Should not be chronic with no data"
     assert result["failure_count"] == 0, "Should have 0 failures"
     print("✅ Test passed: No false positives with empty history\n")
 

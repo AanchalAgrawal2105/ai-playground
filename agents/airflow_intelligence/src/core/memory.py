@@ -491,7 +491,7 @@ class AgentMemory:
 
         # Generate recommendation
         if is_chronic:
-            recommendation = f"CRITICAL: All 3 consecutive runs failed. DAG is completely broken. Immediate action required."
+            recommendation = "CRITICAL: All 3 consecutive runs failed. DAG is completely broken. Immediate action required."
         elif failure_count >= 2:
             recommendation = f"HIGH PRIORITY: {failure_count} of last 3 runs failed. Investigation needed."
         elif failure_count == 1:

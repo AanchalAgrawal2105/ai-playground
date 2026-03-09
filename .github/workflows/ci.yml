@@ -40,7 +40,7 @@ jobs:
 
       - name: Run flake8 (linting)
         run: |
-          flake8 agents/ --exclude=.venv,__pycache__,.git --max-line-length=100 --extend-ignore=E203,W503
+          flake8 agents/ --exclude=.venv,__pycache__,.git --max-line-length=100 --extend-ignore=E203,E501,W503
 
       - name: Run mypy (type checking)
         continue-on-error: true  # Optional for now

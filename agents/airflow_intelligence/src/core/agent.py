@@ -12,8 +12,7 @@ It demonstrates the 4 pillars of agentic AI:
 import json
 import logging
 from abc import ABC, abstractmethod
-from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List
 
 import boto3
 
@@ -153,7 +152,7 @@ class BaseAgent(ABC):
                 if self._has_tool_use(response):
                     # Agent decided to use tools
                     if show_reasoning:
-                        print(f"🔧 Agent decided to use tools...")
+                        print("🔧 Agent decided to use tools...")
 
                     # Store the assistant's tool-use message in history FIRST
                     self.conversation_history.append(
