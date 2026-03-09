@@ -1,9 +1,10 @@
 """Database Tools - PostgreSQL access to Airflow database"""
 
 import logging
-from typing import Dict, Any, List, Optional
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
+from typing import Any, Dict, List, Optional
+
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import SQLAlchemyError
 

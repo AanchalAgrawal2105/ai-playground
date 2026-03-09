@@ -10,10 +10,10 @@ Usage:
     python -m agents.airflow_intelligence.cli report
 """
 
-import os
-import sys
 import argparse
 import logging
+import os
+import sys
 from pathlib import Path
 from typing import Optional
 
@@ -26,12 +26,12 @@ else:
     load_dotenv()
 
 try:
+    from rich import box
     from rich.console import Console
-    from rich.panel import Panel
     from rich.markdown import Markdown
+    from rich.panel import Panel
     from rich.progress import Progress, SpinnerColumn, TextColumn
     from rich.table import Table
-    from rich import box
 
     RICH_AVAILABLE = True
 except ImportError:
@@ -39,7 +39,7 @@ except ImportError:
     print("⚠️  Rich library not installed. Install with: uv pip install rich")
     print("   Falling back to basic output.\n")
 
-from ..core import create_orchestrator, AgentOrchestrator
+from ..core import AgentOrchestrator, create_orchestrator
 
 # Set up logging
 logging.basicConfig(
@@ -330,8 +330,8 @@ Powered by Claude AI + AWS Bedrock
         )
 
         try:
-            from ..monitoring import ProactiveMonitor
             from ..core import AgentConfig
+            from ..monitoring import ProactiveMonitor
 
             # Load config
             config = AgentConfig.from_env()

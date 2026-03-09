@@ -1,10 +1,12 @@
 """Slack Tools - Slack SDK integration"""
 
 import logging
-from typing import Dict, Any, List, Optional
-from datetime import datetime
+from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional
+
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
+
 from ..utils import SlackReportFormatter
 
 logger = logging.getLogger(__name__)

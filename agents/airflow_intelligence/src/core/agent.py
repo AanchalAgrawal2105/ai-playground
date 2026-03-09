@@ -9,12 +9,13 @@ It demonstrates the 4 pillars of agentic AI:
 4. Memory - Context across interactions
 """
 
-import boto3
 import json
 import logging
-from typing import Dict, Any, List, Optional, Tuple
-from datetime import datetime
 from abc import ABC, abstractmethod
+from datetime import datetime
+from typing import Any, Dict, List, Optional, Tuple
+
+import boto3
 
 # Set up logging
 logging.basicConfig(

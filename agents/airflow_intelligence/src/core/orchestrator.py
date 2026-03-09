@@ -14,11 +14,11 @@ Key responsibilities:
 
 import json
 import logging
-from typing import Dict, Any, List, Optional
 from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional
 
+from ..tools import AnalysisTools, DatabaseTools, SlackTools, ToolRegistry
 from .agent import AirflowIntelligenceAgent, create_agent
-from ..tools import ToolRegistry, DatabaseTools, SlackTools, AnalysisTools
 from .config import AgentConfig
 from .memory import AgentMemory
 

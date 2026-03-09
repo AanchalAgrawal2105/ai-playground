@@ -20,18 +20,14 @@ Quick Start:
 __version__ = "2.0.0"
 __author__ = "Aanchal Agrawal"
 
+from .cli import AgentCLI
+from .cli import main as cli_main
 # Import from new modular structure
-from .core import (
-    AgentConfig,
-    AirflowIntelligenceAgent,
-    AgentOrchestrator,
-    AgentMemory,
-    create_orchestrator,
-)
-from .tools import DatabaseTools, SlackTools, AnalysisTools, ToolRegistry
+from .core import (AgentConfig, AgentMemory, AgentOrchestrator,
+                   AirflowIntelligenceAgent, create_orchestrator)
 from .monitoring import ProactiveMonitor, run_proactive_monitor
+from .tools import AnalysisTools, DatabaseTools, SlackTools, ToolRegistry
 from .utils import SlackReportFormatter
-from .cli import AgentCLI, main as cli_main
 
 # Backwards compatibility - import from old locations
 # These will be deprecated in future versions

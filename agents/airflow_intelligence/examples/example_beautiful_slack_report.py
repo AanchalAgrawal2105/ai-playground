@@ -7,6 +7,7 @@ to send professional, well-structured reports to Slack.
 """
 
 import os
+
 from agents.airflow_intelligence.tools import SlackTools
 
 

@@ -6,10 +6,10 @@ This script demonstrates that the agent now has long-term memory.
 It shows the agent storing and recalling incidents across sessions.
 """
 
-import sys
-from pathlib import Path
-import tempfile
 import shutil
+import sys
+import tempfile
+from pathlib import Path
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))

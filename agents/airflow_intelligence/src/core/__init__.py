@@ -9,9 +9,9 @@ This module contains the core components of the Airflow Intelligence Agent:
 """
 
 from .agent import AirflowIntelligenceAgent
-from .orchestrator import AgentOrchestrator, create_orchestrator
-from .memory import AgentMemory
 from .config import AgentConfig
+from .memory import AgentMemory
+from .orchestrator import AgentOrchestrator, create_orchestrator
 
 __all__ = [
     "AirflowIntelligenceAgent",

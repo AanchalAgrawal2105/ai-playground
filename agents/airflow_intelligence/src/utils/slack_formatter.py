@@ -5,8 +5,8 @@ This module provides utilities to create beautifully formatted Slack messages
 using Slack's Block Kit API for better visual hierarchy and readability.
 """
 
-from typing import List, Dict, Any, Optional
 from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional
 
 
 class SlackReportFormatter:
@@ -213,7 +213,7 @@ class SlackReportFormatter:
                             last_success.replace("Z", "+00:00")
                         )
                         last_success = last_success_dt.strftime("%Y-%m-%d %H:%M UTC")
-                    except:
+                    except Exception:
                         pass
 
                 blocks.append(

@@ -12,15 +12,14 @@ This is TRUE agentic behavior - the agent is no longer reactive,
 it's proactively monitoring and making decisions autonomously.
 """
 
-import time
 import logging
 import signal
 import sys
+import time
 from datetime import datetime, timedelta
 from typing import Optional
 
-from ..core import create_orchestrator
-from ..core import AgentConfig
+from ..core import AgentConfig, create_orchestrator
 
 # Set up logging
 logging.basicConfig(

@@ -1,10 +1,11 @@
 """Tool Registry - Coordinates all tools"""
 
 import logging
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
+
+from .analysis import AnalysisTools
 from .database import DatabaseTools
 from .slack import SlackTools
-from .analysis import AnalysisTools
 
 logger = logging.getLogger(__name__)
 

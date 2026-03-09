@@ -8,10 +8,10 @@ This package provides tool implementations that the agent can use:
 - ToolRegistry: Coordinates all tools
 """
 
-from .database import DatabaseTools
-from .slack import SlackTools
 from .analysis import AnalysisTools
+from .database import DatabaseTools
 from .registry import ToolRegistry
+from .slack import SlackTools
 
 __all__ = [
     "DatabaseTools",

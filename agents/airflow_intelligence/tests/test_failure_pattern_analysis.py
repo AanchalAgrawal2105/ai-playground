@@ -6,11 +6,11 @@ This script demonstrates the new chronic failure detection capability.
 It simulates different failure scenarios and shows how the agent detects patterns.
 """
 
-import sys
-from pathlib import Path
-from datetime import datetime, timedelta
-import tempfile
 import shutil
+import sys
+import tempfile
+from datetime import datetime, timedelta
+from pathlib import Path
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))

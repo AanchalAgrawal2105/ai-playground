@@ -11,8 +11,8 @@ Quick Implementation: Just add this to your agent TODAY!
 import json
 import logging
 from datetime import datetime
-from typing import List, Dict, Any, Optional
 from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -211,7 +211,7 @@ class AgentMemory:
             interval2 = (timestamps[2] - timestamps[1]).total_seconds()
 
             return interval2 < interval1 * 0.7  # 30% faster
-        except:
+        except Exception:
             return False
 
     def store_pattern(
@@ -408,7 +408,7 @@ class AgentMemory:
                     recent_incidents.append(incident)
                     if incident.get("issue_type") == "failure":
                         failure_incidents.append(incident)
-            except:
+            except Exception:
                 continue
 
         failure_count = len(failure_incidents)
