@@ -1,0 +1,32 @@
+# Code owners for automated review requests
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owner for everything in the repo
+# Replace with your GitHub username or team
+* @AanchalAgrawal2105
+
+# Airflow Intelligence Agent
+/agents/airflow_intelligence/ @AanchalAgrawal2105
+
+# CI/CD and workflows
+/.github/ @AanchalAgrawal2105
+
+# Documentation
+*.md @AanchalAgrawal2105
+/docs/ @AanchalAgrawal2105
+/agents/*/docs/ @AanchalAgrawal2105
+
+# Deployment configurations
+/agents/*/deploy/ @AanchalAgrawal2105
+**/Dockerfile @AanchalAgrawal2105
+**/docker-compose*.yml @AanchalAgrawal2105
+**/kubernetes/ @AanchalAgrawal2105
+
+# Security-sensitive files
+.env.template @AanchalAgrawal2105
+**/requirements*.txt @AanchalAgrawal2105
+/.github/workflows/ @AanchalAgrawal2105
+
+# Tests
+/tests/ @AanchalAgrawal2105
+/agents/*/tests/ @AanchalAgrawal2105
