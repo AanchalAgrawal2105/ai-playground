@@ -22,9 +22,15 @@ __author__ = "Aanchal Agrawal"
 
 from .src.cli import AgentCLI
 from .src.cli import main as cli_main
+
 # Import from src/ package
-from .src.core import (AgentConfig, AgentMemory, AgentOrchestrator,
-                       AirflowIntelligenceAgent, create_orchestrator)
+from .src.core import (
+    AgentConfig,
+    AgentMemory,
+    AgentOrchestrator,
+    AirflowIntelligenceAgent,
+    create_orchestrator,
+)
 from .src.core.agent import create_agent
 from .src.monitoring import ProactiveMonitor, run_proactive_monitor
 from .src.tools import AnalysisTools, DatabaseTools, SlackTools, ToolRegistry

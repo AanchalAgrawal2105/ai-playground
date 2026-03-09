@@ -22,9 +22,15 @@ __author__ = "Aanchal Agrawal"
 
 from .cli import AgentCLI
 from .cli import main as cli_main
+
 # Import from new modular structure
-from .core import (AgentConfig, AgentMemory, AgentOrchestrator,
-                   AirflowIntelligenceAgent, create_orchestrator)
+from .core import (
+    AgentConfig,
+    AgentMemory,
+    AgentOrchestrator,
+    AirflowIntelligenceAgent,
+    create_orchestrator,
+)
 from .monitoring import ProactiveMonitor, run_proactive_monitor
 from .tools import AnalysisTools, DatabaseTools, SlackTools, ToolRegistry
 from .utils import SlackReportFormatter
