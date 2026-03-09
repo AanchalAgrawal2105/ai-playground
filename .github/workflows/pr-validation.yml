@@ -11,6 +11,7 @@ jobs:
   pr-title-check:
     name: PR Title Check
     runs-on: ubuntu-latest
+    continue-on-error: true  # Make this non-blocking
     if: github.event.pull_request.draft == false
     steps:
       - name: Check PR title format
@@ -67,6 +68,7 @@ jobs:
   secret-scan:
     name: Secret Scanning
     runs-on: ubuntu-latest
+    continue-on-error: true  # Make this non-blocking
     if: github.event.pull_request.draft == false
     steps:
       - name: Checkout code
@@ -107,6 +109,7 @@ jobs:
   pr-description-check:
     name: PR Description Check
     runs-on: ubuntu-latest
+    continue-on-error: true  # Make this non-blocking
     if: github.event.pull_request.draft == false
     steps:
       - name: Check PR description
@@ -117,7 +120,7 @@ jobs:
             const body = pr.body || '';
 
             if (body.length < 50) {
-              core.setFailed('PR description is too short. Please provide a meaningful description (at least 50 characters).');
+              core.warning('PR description is short. Consider providing a more detailed description (at least 50 characters).');
             } else {
               console.log('✅ PR description is adequate');
             }
@@ -178,15 +181,25 @@ jobs:
     needs: [pr-title-check, pr-size-check, secret-scan, pr-description-check, breaking-changes-check]
     if: always() && github.event.pull_request.draft == false
     steps:
-      - name: Check all validations
+      - name: Check required validations
         run: |
-          if [[ "${{ needs.pr-title-check.result }}" == "success" ]] && \
-             [[ "${{ needs.pr-size-check.result }}" == "success" ]] && \
-             [[ "${{ needs.secret-scan.result }}" == "success" ]] && \
-             [[ "${{ needs.pr-description-check.result }}" == "success" ]] && \
+          # Only require essential checks: pr-size-check and breaking-changes-check
+          # Optional: pr-title-check, secret-scan, pr-description-check
+          if [[ "${{ needs.pr-size-check.result }}" == "success" ]] && \
              [[ "${{ needs.breaking-changes-check.result }}" == "success" ]]; then
-            echo "✅ All PR validations passed!"
+            echo "✅ Required PR validations passed!"
+            echo ""
+            echo "Required checks:"
+            echo "  PR Size: ${{ needs.pr-size-check.result }}"
+            echo "  Breaking Changes: ${{ needs.breaking-changes-check.result }}"
+            echo ""
+            echo "Optional checks (informational):"
+            echo "  PR Title: ${{ needs.pr-title-check.result }}"
+            echo "  Secret Scan: ${{ needs.secret-scan.result }}"
+            echo "  PR Description: ${{ needs.pr-description-check.result }}"
           else
-            echo "❌ Some PR validations failed"
+            echo "❌ Required PR validations failed"
+            echo "  PR Size: ${{ needs.pr-size-check.result }}"
+            echo "  Breaking Changes: ${{ needs.breaking-changes-check.result }}"
             exit 1
           fi

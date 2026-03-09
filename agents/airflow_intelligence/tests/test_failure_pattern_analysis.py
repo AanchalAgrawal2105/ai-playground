@@ -9,7 +9,6 @@ It simulates different failure scenarios and shows how the agent detects pattern
 import shutil
 import sys
 import tempfile
-
 from pathlib import Path
 
 # Add parent directory to path
