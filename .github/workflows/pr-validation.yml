@@ -85,6 +85,7 @@ jobs:
   todo-check:
     name: TODO/FIXME Check
     runs-on: ubuntu-latest
+    continue-on-error: true  # Optional - informational only
     if: github.event.pull_request.draft == false
     steps:
       - name: Checkout code
@@ -160,6 +161,7 @@ jobs:
   auto-label:
     name: Auto Label PR
     runs-on: ubuntu-latest
+    continue-on-error: true  # Optional - don't block PR if labeling fails
     if: github.event.pull_request.draft == false
     permissions:
       contents: read
@@ -170,6 +172,7 @@ jobs:
 
       - name: Label PR based on changed files
         uses: actions/labeler@v5
+        continue-on-error: true
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           configuration-path: .github/labeler.yml
