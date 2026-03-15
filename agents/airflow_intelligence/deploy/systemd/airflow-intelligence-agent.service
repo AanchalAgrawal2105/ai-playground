@@ -1,0 +1,27 @@
+[Unit]
+Description=Airflow Intelligence Agent - Proactive Monitoring
+After=network.target postgresql.service
+
+[Service]
+Type=simple
+User=agent
+Group=agent
+WorkingDirectory=/opt/airflow-intelligence-agent
+Environment="PATH=/opt/airflow-intelligence-agent/.venv/bin"
+EnvironmentFile=/opt/airflow-intelligence-agent/.env
+ExecStart=/opt/airflow-intelligence-agent/.venv/bin/python -m agents.airflow_intelligence.cli proactive --interval 15
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=airflow-intelligence-agent
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/airflow-intelligence-agent/.agent_memory
+
+[Install]
+WantedBy=multi-user.target

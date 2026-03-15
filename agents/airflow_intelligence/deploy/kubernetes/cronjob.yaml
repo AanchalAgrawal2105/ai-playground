@@ -1,0 +1,47 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: airflow-intelligence-report
+  namespace: airflow-intelligence
+spec:
+  # Run every hour at minute 0
+  schedule: "0 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: airflow-intelligence-report
+        spec:
+          containers:
+          - name: report-generator
+            image: airflow-intelligence-agent:latest
+            imagePullPolicy: IfNotPresent
+            command:
+              - python
+              - -m
+              - agents.airflow_intelligence.cli
+              - report
+            envFrom:
+            - configMapRef:
+                name: agent-config
+            - secretRef:
+                name: agent-secrets
+            resources:
+              requests:
+                memory: "256Mi"
+                cpu: "100m"
+              limits:
+                memory: "1Gi"
+                cpu: "500m"
+            volumeMounts:
+            - name: agent-memory
+              mountPath: /app/.agent_memory
+          volumes:
+          - name: agent-memory
+            persistentVolumeClaim:
+              claimName: agent-memory-pvc
+          restartPolicy: OnFailure
