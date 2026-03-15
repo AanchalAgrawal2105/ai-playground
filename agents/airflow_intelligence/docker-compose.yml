@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  # Proactive monitoring - runs continuously
+  airflow-agent-proactive:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile
+    container_name: airflow-intelligence-agent
+    env_file:
+      - .env
+    volumes:
+      - ./.agent_memory:/app/.agent_memory
+    restart: unless-stopped
+    command: python -m src.cli proactive --interval 15
+    healthcheck:
+      test: ["CMD", "python", "-c", "from src.core import AgentConfig; print('healthy')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+    networks:
+      - airflow-network
+
+  # Interactive mode - for one-time use
+  airflow-agent-interactive:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile
+    container_name: airflow-agent-interactive
+    env_file:
+      - .env
+    volumes:
+      - ./.agent_memory:/app/.agent_memory
+    stdin_open: true
+    tty: true
+    command: python -m src.cli interactive
+    profiles:
+      - interactive
+    networks:
+      - airflow-network
+
+networks:
+  airflow-network:
+    driver: bridge

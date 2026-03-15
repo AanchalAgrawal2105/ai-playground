@@ -44,4 +44,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 EXPOSE 8080
 
 # Default command - proactive monitoring
-CMD ["python", "-m", "src", "proactive", "--interval", "15"]
+CMD ["python", "-m", "src.cli", "proactive", "--interval", "15"]
