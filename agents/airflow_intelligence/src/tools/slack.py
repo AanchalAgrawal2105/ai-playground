@@ -1,7 +1,6 @@
 """Slack Tools - Slack SDK integration"""
 
 import logging
-from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 from slack_sdk import WebClient
@@ -39,7 +38,7 @@ class SlackTools:
         self, severity: str, title: str, message: str, channel: Optional[str] = None
     ) -> Dict[str, Any]:
         """
-        Send formatted alert to Slack.
+        Send beautifully formatted alert to Slack using SlackReportFormatter.
 
         Args:
             severity: Alert severity (info/warning/critical)
@@ -53,38 +52,26 @@ class SlackTools:
         try:
             target_channel = channel or self.default_channel
 
-            # Map severity to color
-            color_map = {
-                "info": "#36a64f",  # Green
-                "warning": "#ff9900",  # Orange
-                "critical": "#ff0000",  # Red
-            }
-            color = color_map.get(severity, "#808080")
+            # Use the formatter for beautiful Slack Block Kit formatting
+            # This creates a much nicer visual structure than basic blocks
+            blocks = self.formatter.create_simple_alert_blocks(
+                severity=severity,
+                title=title,
+                message=message,
+                fields=None,  # No additional fields for basic alerts
+            )
 
-            # Build Slack blocks for rich formatting
-            blocks = [
-                {
-                    "type": "header",
-                    "text": {"type": "plain_text", "text": title, "emoji": True},
-                },
-                {"type": "section", "text": {"type": "mrkdwn", "text": message}},
-                {
-                    "type": "context",
-                    "elements": [
-                        {
-                            "type": "mrkdwn",
-                            "text": f"🤖 *Airflow Intelligence Agent* | {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}",
-                        }
-                    ],
-                },
-            ]
-
-            # Send message
+            # Send message with formatted blocks
             response = self.client.chat_postMessage(
                 channel=target_channel,
                 blocks=blocks,
                 text=title,  # Fallback text for notifications
-                attachments=[{"color": color, "fallback": title}],
+                attachments=[
+                    {
+                        "color": self.formatter.get_attachment_color(severity),
+                        "fallback": title,
+                    }
+                ],
             )
 
             logger.info(f"Slack alert sent to {target_channel}: {title}")
