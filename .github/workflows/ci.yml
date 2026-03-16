@@ -184,7 +184,6 @@ jobs:
             "README.md"
             "LICENSE"
             "agents/airflow_intelligence/README.md"
-          )
 
           for doc in "${required_docs[@]}"; do
             if [ ! -f "$doc" ]; then
