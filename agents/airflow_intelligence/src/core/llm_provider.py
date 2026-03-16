@@ -115,8 +115,9 @@ class AnthropicBedrockProvider(LLMProvider):
         """
         super().__init__(model_id, temperature, max_tokens)
 
-        import boto3
         import os
+
+        import boto3
 
         # Create Bedrock client
         # If AWS_PROFILE is set, use it to create a session (for SSO)
