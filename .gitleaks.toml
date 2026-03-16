@@ -1,0 +1,25 @@
+title = "Gitleaks configuration for ai-playground"
+
+[allowlist]
+description = "Allowlist for test/placeholder secrets in Kubernetes deployment files"
+
+# Allowlist specific file paths
+paths = [
+    '''k8s/deployment\.yaml''',
+]
+
+# Allowlist known test/placeholder values
+regexes = [
+    '''test-secret''',
+    '''xoxb-test-token''',
+    '''AKIATEST''',
+    '''cG9zdGdyZXNxbDovL3VzZXI6cGFzc0BkYi9haXJmbG93''',  # Base64: postgresql://user:pass@db/airflow
+    '''dGVzdC1zZWNyZXQ=''',  # Base64: test-secret
+    '''eG94Yi10ZXN0LXRva2Vu''',  # Base64: xoxb-test-token
+    '''QUtJQVRFU1Q=''',  # Base64: AKIATEST
+]
+
+# Allowlist specific commits (the old commit with test values)
+commits = [
+    '''846f54306d8d35215ea9c89eb84790443de6fee8''',
+]

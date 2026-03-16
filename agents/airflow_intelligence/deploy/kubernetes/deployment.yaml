@@ -1,0 +1,121 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: airflow-intelligence
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: agent-config
+  namespace: airflow-intelligence
+data:
+  WINDOW_HOURS: "24"
+  BASELINE_DAYS: "14"
+  ANOMALY_MULTIPLIER: "1.5"
+  MIN_HISTORY: "10"
+  AWS_REGION: "us-east-1"
+  MODEL_ID: "anthropic.claude-3-5-sonnet-20241022-v2:0"
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: agent-secrets
+  namespace: airflow-intelligence
+type: Opaque
+stringData:
+  AIRFLOW_DB_URL: "postgresql://user:password@airflow-db:5432/airflow"
+  AWS_ACCESS_KEY_ID: "your-access-key-id"
+  AWS_SECRET_ACCESS_KEY: "your-secret-access-key"
+  SLACK_BOT_TOKEN: "xoxb-your-slack-token"
+  SLACK_CHANNEL: "#airflow-monitoring"
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: agent-memory-pvc
+  namespace: airflow-intelligence
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: airflow-intelligence-agent
+  namespace: airflow-intelligence
+  labels:
+    app: airflow-intelligence-agent
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: airflow-intelligence-agent
+  template:
+    metadata:
+      labels:
+        app: airflow-intelligence-agent
+    spec:
+      containers:
+      - name: agent
+        image: airflow-intelligence-agent:latest
+        imagePullPolicy: IfNotPresent
+        command:
+          - python
+          - -m
+          - agents.airflow_intelligence.cli
+          - proactive
+          - --interval
+          - "15"
+        envFrom:
+        - configMapRef:
+            name: agent-config
+        - secretRef:
+            name: agent-secrets
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        volumeMounts:
+        - name: agent-memory
+          mountPath: /app/.agent_memory
+        livenessProbe:
+          exec:
+            command:
+            - python
+            - -m
+            - agents.airflow_intelligence.cli
+            - test
+          initialDelaySeconds: 30
+          periodSeconds: 60
+          timeoutSeconds: 10
+          failureThreshold: 3
+      volumes:
+      - name: agent-memory
+        persistentVolumeClaim:
+          claimName: agent-memory-pvc
+      restartPolicy: Always
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: airflow-intelligence-agent
+  namespace: airflow-intelligence
+spec:
+  selector:
+    app: airflow-intelligence-agent
+  ports:
+  - port: 80
+    targetPort: 8080
+    name: http
+  type: ClusterIP

@@ -1,0 +1,38 @@
+# Core AI/ML - Multiple LLM Provider Support
+boto3>=1.26.0                  # AWS Bedrock provider
+anthropic>=0.18.0              # Anthropic API provider
+openai>=1.0.0                  # OpenAI API provider
+
+# Database
+sqlalchemy>=2.0.0              # Database toolkit
+psycopg2-binary>=2.9.0         # PostgreSQL driver
+alembic>=1.12.0                # Database migrations (optional)
+
+# Data Processing
+pandas>=2.0.0                  # Data analysis
+numpy>=1.24.0                  # Numerical computing
+scipy>=1.11.0                  # Scientific computing (for anomaly detection)
+
+# Slack Integration
+slack-sdk>=3.23.0              # Slack API client
+
+# CLI & UI
+rich>=13.0.0                   # Beautiful terminal output
+typer>=0.9.0                   # CLI framework (optional)
+click>=8.1.0                   # CLI utilities
+
+# Utilities
+python-dotenv>=1.0.0           # Environment variable management
+pydantic>=2.0.0                # Data validation (optional)
+
+# Testing (dev only)
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+pytest-mock>=3.11.0
+pytest-cov>=4.1.0
+
+# Code Quality (dev only)
+black>=23.0.0
+isort>=5.12.0
+flake8>=6.0.0
+mypy>=1.5.0
