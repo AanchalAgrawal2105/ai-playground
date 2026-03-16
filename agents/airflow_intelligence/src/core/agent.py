@@ -12,9 +12,12 @@ It demonstrates the 4 pillars of agentic AI:
 import json
 import logging
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List
+from typing import TYPE_CHECKING, Any, Dict, List
 
 from .llm_provider import LLMProvider
+
+if TYPE_CHECKING:
+    from .config import AgentConfig
 
 # Set up logging
 logging.basicConfig(
