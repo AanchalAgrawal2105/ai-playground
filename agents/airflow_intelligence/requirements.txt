@@ -1,6 +1,7 @@
-# Core AI/ML
-boto3>=1.26.0                  # AWS Bedrock
-anthropic>=0.18.0              # Anthropic SDK (alternative to boto3)
+# Core AI/ML - Multiple LLM Provider Support
+boto3>=1.26.0                  # AWS Bedrock provider
+anthropic>=0.18.0              # Anthropic API provider
+openai>=1.0.0                  # OpenAI API provider
 
 # Database
 sqlalchemy>=2.0.0              # Database toolkit

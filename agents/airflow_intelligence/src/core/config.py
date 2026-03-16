@@ -24,11 +24,18 @@ class AgentConfig:
     # Database
     airflow_db_url: str
 
-    # AWS Bedrock
-    aws_region: str
+    # LLM Provider Configuration
+    llm_provider: str  # "bedrock", "anthropic", or "openai"
     model_id: str
+
+    # AWS Bedrock (only if llm_provider = "bedrock")
+    aws_region: Optional[str]
     aws_access_key: Optional[str]
     aws_secret_key: Optional[str]
+
+    # API Keys (for anthropic/openai providers)
+    anthropic_api_key: Optional[str]
+    openai_api_key: Optional[str]
 
     # Slack
     slack_token: Optional[str]
@@ -64,11 +71,20 @@ class AgentConfig:
             # Database
             AIRFLOW_DB_URL: PostgreSQL connection string
 
-            # AWS Bedrock
+            # LLM Provider
+            LLM_PROVIDER: Provider type ("bedrock", "anthropic", or "openai")
+            MODEL_ID: Model identifier (provider-specific)
+
+            # AWS Bedrock (only if LLM_PROVIDER=bedrock)
             AWS_REGION: AWS region (e.g., us-east-1, eu-west-1)
-            MODEL_ID: Bedrock model ID
             AWS_ACCESS_KEY_ID: AWS access key (optional if using IAM role)
             AWS_SECRET_ACCESS_KEY: AWS secret key (optional if using IAM role)
+
+            # Anthropic API (only if LLM_PROVIDER=anthropic)
+            ANTHROPIC_API_KEY: Anthropic API key
+
+            # OpenAI API (only if LLM_PROVIDER=openai)
+            OPENAI_API_KEY: OpenAI API key
 
             # Slack
             SLACK_BOT_TOKEN: Slack bot token (optional if not using Slack)
@@ -118,11 +134,16 @@ class AgentConfig:
         return cls(
             # Database - Required
             airflow_db_url=get_required("AIRFLOW_DB_URL"),
-            # AWS Bedrock - Required
-            aws_region=get_required("AWS_REGION"),
+            # LLM Provider - Required
+            llm_provider=get_required("LLM_PROVIDER"),
             model_id=get_required("MODEL_ID"),
+            # AWS Bedrock - Optional (required if llm_provider=bedrock)
+            aws_region=get_optional("AWS_REGION"),
             aws_access_key=get_optional("AWS_ACCESS_KEY_ID"),
             aws_secret_key=get_optional("AWS_SECRET_ACCESS_KEY"),
+            # API Keys - Optional (required based on provider)
+            anthropic_api_key=get_optional("ANTHROPIC_API_KEY"),
+            openai_api_key=get_optional("OPENAI_API_KEY"),
             # Slack - Optional token, required config
             slack_token=get_optional("SLACK_BOT_TOKEN"),
             slack_channel=get_required("SLACK_CHANNEL"),
@@ -173,10 +194,29 @@ class AgentConfig:
         if self.enable_slack and not self.slack_token:
             errors.append("SLACK_BOT_TOKEN required when Slack notifications enabled")
 
-        # AWS credentials check (optional - will fallback to IAM role if not provided)
-        if not self.aws_access_key or not self.aws_secret_key:
-            # This is a warning, not an error - IAM roles might be used
-            pass
+        # Provider-specific validation
+        if not self.llm_provider:
+            errors.append("LLM_PROVIDER is required (bedrock, anthropic, or openai)")
+        elif self.llm_provider.lower() not in ["bedrock", "anthropic", "openai"]:
+            errors.append(
+                f"Invalid LLM_PROVIDER: {self.llm_provider}. "
+                f"Must be: bedrock, anthropic, or openai"
+            )
+        else:
+            provider = self.llm_provider.lower()
+
+            if provider == "bedrock":
+                if not self.aws_region:
+                    errors.append("AWS_REGION required when using bedrock provider")
+                # AWS credentials are optional - will fallback to IAM role
+            elif provider == "anthropic":
+                if not self.anthropic_api_key:
+                    errors.append(
+                        "ANTHROPIC_API_KEY required when using anthropic provider"
+                    )
+            elif provider == "openai":
+                if not self.openai_api_key:
+                    errors.append("OPENAI_API_KEY required when using openai provider")
 
         return errors
 
@@ -184,8 +224,9 @@ class AgentConfig:
         """Convert configuration to dictionary."""
         return {
             "airflow_db_url": self.airflow_db_url,
-            "aws_region": self.aws_region,
+            "llm_provider": self.llm_provider,
             "model_id": self.model_id,
+            "aws_region": self.aws_region,
             "slack_channel": self.slack_channel,
             "enable_slack": self.enable_slack,
             "temperature": self.temperature,
@@ -198,6 +239,7 @@ class AgentConfig:
         """String representation (hides sensitive data)."""
         return (
             f"AgentConfig(\n"
+            f"  llm_provider={self.llm_provider},\n"
             f"  model_id={self.model_id},\n"
             f"  aws_region={self.aws_region},\n"
             f"  slack_channel={self.slack_channel},\n"

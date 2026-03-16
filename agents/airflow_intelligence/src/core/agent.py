@@ -14,7 +14,7 @@ import logging
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List
 
-import boto3
+from .llm_provider import LLMProvider
 
 # Set up logging
 logging.basicConfig(
@@ -25,12 +25,14 @@ logger = logging.getLogger(__name__)
 
 class BaseAgent(ABC):
     """
-    Base AI Agent with tool use capabilities via AWS Bedrock.
+    Base AI Agent with tool use capabilities (provider-agnostic).
 
     This class implements the core agent loop:
     - Conversation management (memory)
     - Tool use pattern (actions)
     - Autonomous reasoning (agent loop)
+
+    Works with any LLM provider (AWS Bedrock, Anthropic API, OpenAI, etc.)
 
     Subclasses must implement:
     - get_system_prompt(): Define agent's behavior
@@ -39,34 +41,23 @@ class BaseAgent(ABC):
 
     def __init__(
         self,
-        model_id: str,
-        region: str = "us-east-1",
-        temperature: float = 0.3,
-        max_tokens: int = 4096,
+        llm_provider: LLMProvider,
         max_iterations: int = 10,
     ):
         """
         Initialize the agent.
 
         Args:
-            model_id: Bedrock model ID (e.g., "anthropic.claude-3-5-sonnet...")
-            region: AWS region
-            temperature: Creativity (0=deterministic, 1=creative)
-            max_tokens: Max response length
+            llm_provider: LLM provider instance (Bedrock, Anthropic, OpenAI, etc.)
             max_iterations: Max reasoning loops (prevents infinite loops)
         """
-        self.model_id = model_id
-        self.temperature = temperature
-        self.max_tokens = max_tokens
+        self.llm_provider = llm_provider
         self.max_iterations = max_iterations
 
-        # Initialize Bedrock client
-        try:
-            self.bedrock = boto3.client("bedrock-runtime", region_name=region)
-            logger.info(f"Initialized Bedrock client for model: {model_id}")
-        except Exception as e:
-            logger.error(f"Failed to initialize Bedrock client: {e}")
-            raise
+        logger.info(
+            f"Initialized agent with provider: {llm_provider.__class__.__name__}"
+        )
+        logger.info(f"Model: {llm_provider.model_id}")
 
         # Memory: Conversation history (all messages)
         self.conversation_history: List[Dict[str, Any]] = []
@@ -145,8 +136,8 @@ class BaseAgent(ABC):
                 )
 
             try:
-                # Call Bedrock with tool configuration
-                response = self._call_bedrock()
+                # Call LLM provider with tool configuration
+                response = self._call_llm()
 
                 # Check if agent wants to use tools
                 if self._has_tool_use(response):
@@ -205,22 +196,17 @@ class BaseAgent(ABC):
         logger.warning(warning)
         return warning
 
-    def _call_bedrock(self) -> Dict[str, Any]:
+    def _call_llm(self) -> Dict[str, Any]:
         """
-        Call AWS Bedrock with tool configuration.
+        Call LLM provider with tool configuration.
 
         Retries once with trimmed history if the input exceeds context limits.
         """
         try:
-            response = self.bedrock.converse(
-                modelId=self.model_id,
-                system=[{"text": self.get_system_prompt()}],
+            response = self.llm_provider.converse(
                 messages=self.conversation_history,
-                toolConfig={"tools": self.get_tools()},
-                inferenceConfig={
-                    "maxTokens": self.max_tokens,
-                    "temperature": self.temperature,
-                },
+                system=self.get_system_prompt(),
+                tools=self.get_tools(),
             )
             return response
 
@@ -229,18 +215,13 @@ class BaseAgent(ABC):
             if "too long" in error_msg.lower() and len(self.conversation_history) > 2:
                 logger.warning("Context too long — trimming older turns and retrying")
                 self._trim_conversation_history()
-                response = self.bedrock.converse(
-                    modelId=self.model_id,
-                    system=[{"text": self.get_system_prompt()}],
+                response = self.llm_provider.converse(
                     messages=self.conversation_history,
-                    toolConfig={"tools": self.get_tools()},
-                    inferenceConfig={
-                        "maxTokens": self.max_tokens,
-                        "temperature": self.temperature,
-                    },
+                    system=self.get_system_prompt(),
+                    tools=self.get_tools(),
                 )
                 return response
-            logger.error(f"Bedrock API error: {e}")
+            logger.error(f"LLM API error: {e}")
             raise
 
     def _trim_conversation_history(self) -> None:
@@ -963,24 +944,44 @@ Remember: You are an AUTONOMOUS AGENT. Act independently, investigate thoroughly
         ]
 
 
-# Utility function for testing
-def create_agent(model_id: str, region: str = "us-east-1") -> AirflowIntelligenceAgent:
+# Utility function for creating agent with config
+def create_agent(config: "AgentConfig") -> "AirflowIntelligenceAgent":
     """
-    Factory function to create an Airflow Intelligence Agent.
+    Factory function to create an Airflow Intelligence Agent with LLM provider.
 
     Args:
-        model_id: AWS Bedrock model ID
-        region: AWS region
+        config: AgentConfig with provider and model settings
 
     Returns:
         Configured AirflowIntelligenceAgent instance
     """
+    from .llm_provider import create_llm_provider
+
+    # Create the appropriate LLM provider
+    provider_kwargs = {}
+
+    if config.llm_provider.lower() == "bedrock":
+        provider_kwargs = {
+            "region": config.aws_region,
+            "aws_access_key": config.aws_access_key,
+            "aws_secret_key": config.aws_secret_key,
+        }
+    elif config.llm_provider.lower() == "anthropic":
+        provider_kwargs = {"api_key": config.anthropic_api_key}
+    elif config.llm_provider.lower() == "openai":
+        provider_kwargs = {"api_key": config.openai_api_key}
+
+    llm_provider = create_llm_provider(
+        provider_type=config.llm_provider,
+        model_id=config.model_id,
+        temperature=config.temperature,
+        max_tokens=config.max_tokens,
+        **provider_kwargs,
+    )
+
     return AirflowIntelligenceAgent(
-        model_id=model_id,
-        region=region,
-        temperature=0.3,
-        max_tokens=4096,
-        max_iterations=10,
+        llm_provider=llm_provider,
+        max_iterations=config.max_iterations,
     )
 
 

@@ -76,6 +76,13 @@ Unlike traditional monitoring systems that follow rigid rules, this agent demons
 - Structured reports with clear sections
 - Direct links to Airflow UI
 
+### 🔌 **Multi-LLM Provider Support**
+- **AWS Bedrock**: Enterprise-ready, Claude models via AWS
+- **Anthropic API**: Direct access to latest Claude models
+- **OpenAI API**: GPT-4 Turbo and GPT-4o support
+- Provider-agnostic architecture - switch easily
+- Single configuration change to swap providers
+
 ---
 
 ## 🚀 Quick Start with Docker
@@ -99,7 +106,15 @@ docker run -it --rm \
   --env-file .env \
   -v $(pwd)/.agent_memory:/app/.agent_memory \
   airflow-intelligence-agent \
-  python -m src.cli interactive
+  python -m src interactive
+
+# Note: If using AWS SSO (AWS_PROFILE in .env), mount AWS credentials:
+docker run -it --rm \
+  --env-file .env \
+  -v $(pwd)/.agent_memory:/app/.agent_memory \
+  -v ~/.aws:/home/agent/.aws:ro \
+  airflow-intelligence-agent \
+  python -m src interactive
 
 # 5. Or run proactive monitoring
 docker run -d \
@@ -108,7 +123,9 @@ docker run -d \
   -v $(pwd)/.agent_memory:/app/.agent_memory \
   --restart unless-stopped \
   airflow-intelligence-agent \
-  python -m src.cli proactive --interval 15
+  python -m src proactive --interval 15
+
+# Note: Add AWS credentials mount for SSO: -v ~/.aws:/home/agent/.aws:ro
 ```
 
 ---
@@ -119,7 +136,10 @@ docker run -d \
 
 - **Python 3.9+** (3.9, 3.10, or 3.11)
 - **PostgreSQL** - Airflow metadata database access
-- **AWS Account** - For Bedrock Claude access
+- **LLM Provider** - Choose one:
+  - **AWS Bedrock** (recommended for enterprise)
+  - **Anthropic API** (easiest to get started)
+  - **OpenAI API** (GPT-4 support)
 - **Slack Bot** (optional) - For notifications
 
 ### Step-by-Step Local Setup
@@ -432,15 +452,33 @@ Create a `.env` file from `.env.example`:
 AIRFLOW_DB_URL=postgresql://username:password@hostname:5432/database
 
 # ============================================================================
-# AWS BEDROCK CONFIGURATION - REQUIRED
+# LLM PROVIDER CONFIGURATION - REQUIRED
 # ============================================================================
-AWS_REGION=us-east-1
+# Choose provider: "bedrock", "anthropic", or "openai"
+LLM_PROVIDER=bedrock
+
+# Model ID (provider-specific)
+# - Bedrock: anthropic.claude-sonnet-4-20250514-v1:0
+# - Anthropic API: claude-sonnet-4-20250514
+# - OpenAI: gpt-4-turbo, gpt-4o
 MODEL_ID=anthropic.claude-sonnet-4-20250514-v1:0
 
-# AWS Credentials (use IAM role in production, credentials for local dev)
-AWS_ACCESS_KEY_ID=your_access_key_id
-AWS_SECRET_ACCESS_KEY=your_secret_access_key
-AWS_SESSION_TOKEN=                    # Optional, for temporary credentials
+# --- AWS Bedrock (only if LLM_PROVIDER=bedrock) ---
+AWS_REGION=us-east-1
+
+# Option 1: AWS SSO (Recommended for enterprise)
+AWS_PROFILE=sso-bedrock   # Set your SSO profile name
+
+# Option 2: Static IAM credentials
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
+AWS_SESSION_TOKEN=         # Optional, for temporary credentials
+
+# --- Anthropic API (only if LLM_PROVIDER=anthropic) ---
+ANTHROPIC_API_KEY=sk-ant-your-api-key-here
+
+# --- OpenAI API (only if LLM_PROVIDER=openai) ---
+OPENAI_API_KEY=sk-your-api-key-here
 
 # ============================================================================
 # SLACK CONFIGURATION - OPTIONAL
@@ -481,12 +519,29 @@ MAX_RESULTS=1000                      # Maximum results per query
 2. Create a new app or select existing
 3. Go to "OAuth & Permissions"
 4. Add Bot Token Scopes:
-   - `chat:write`
-   - `chat:write.public`
-5. Install app to workspace
-6. Copy "Bot User OAuth Token" (starts with `xoxb-`)
-
 ### Getting AWS Credentials
+
+**Option 1: AWS SSO (Recommended for Enterprise)**
+
+```bash
+# Configure AWS SSO
+aws configure sso
+# Follow prompts: enter SSO start URL, region, account, role
+# Name your profile (e.g., "sso-bedrock")
+
+# Login to SSO
+aws sso login --profile sso-bedrock
+
+# Test access
+aws bedrock list-foundation-models --region eu-west-1 --profile sso-bedrock
+
+# In .env file:
+AWS_PROFILE=sso-bedrock
+AWS_REGION=eu-west-1
+# Leave AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY blank
+```
+
+**Option 2: Static IAM Credentials (Development Only)**
 
 **For Local Development:**
 ```bash
@@ -497,6 +552,10 @@ aws configure
 export AWS_ACCESS_KEY_ID=your_key
 export AWS_SECRET_ACCESS_KEY=your_secret
 export AWS_REGION=us-east-1
+```
+
+**For Production:**
+Use IAM roles or AWS SSO instead of hardcoded credentials.
 ```
 
 **For Production:**

@@ -17,10 +17,17 @@ Before you begin, make sure you have:
   - Host, port, username, password, database name
   - Database should contain Airflow metadata
 
-- [ ] **AWS Account with Bedrock access**
-  - AWS Access Key ID
-  - AWS Secret Access Key
-  - Region with Claude Sonnet 4 enabled (us-east-1 recommended)
+- [ ] **LLM Provider** - Choose ONE of the following:
+  - **AWS Bedrock** (recommended for enterprise):
+    - AWS Access Key ID & Secret Access Key
+    - Region with Claude Sonnet enabled 
+    - Bedrock model access enabled in AWS console
+  - **Anthropic API** (easiest to get started):
+    - Get API key from https://console.anthropic.com/
+    - Direct access to latest Claude models
+  - **OpenAI API**:
+    - Get API key from https://platform.openai.com/api-keys
+    - GPT-4 Turbo or GPT-4o recommended
 
 - [ ] **Slack Bot Token** (Optional, but recommended)
   - Go to https://api.slack.com/apps
@@ -140,20 +147,42 @@ nano .env   # or: vim .env, code .env, etc.
 AIRFLOW_DB_URL=postgresql://username:password@hostname:5432/airflow_db
 
 # Example: If your database is:
-# - Host: tardis-airflow.rds.amazonaws.com
+# - Host: your-airflow-db.example.com
 # - Port: 5432
 # - Username: airflow_user
 # - Password: MySecurePass123
 # - Database: airflow_metadata
 # Then:
-AIRFLOW_DB_URL=postgresql://airflow_user:MySecurePass123@tardis-airflow.rds.amazonaws.com:5432/airflow_metadata
+AIRFLOW_DB_URL=postgresql://airflow_user:MySecurePass123@your-airflow-db.example.com:5432/airflow_metadata
 
 
-# ============ AWS BEDROCK (REQUIRED) ============
+# ============ LLM PROVIDER (REQUIRED) ============
+# Choose ONE: "bedrock", "anthropic", or "openai"
+LLM_PROVIDER=anthropic
+
+# Model ID (provider-specific):
+# - Bedrock: anthropic.claude-sonnet-4-20250514-v1:0
+# - Anthropic: claude-sonnet-4-20250514
+# - OpenAI: gpt-4-turbo or gpt-4o
+MODEL_ID=claude-sonnet-4-20250514
+
+# --- If using Bedrock ---
 AWS_REGION=us-east-1
-MODEL_ID=anthropic.claude-sonnet-4-20250514-v1:0
-AWS_ACCESS_KEY_ID=AKIAXXXXXXXXXXXXXXXX
-AWS_SECRET_ACCESS_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+# Option 1: AWS SSO (Recommended for enterprise environments)
+# If you use AWS SSO, set your profile name and leave credentials blank
+AWS_PROFILE=sso-bedrock
+
+# Option 2: Static credentials (for IAM users)
+# Only fill these if NOT using AWS SSO
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
+
+# --- If using Anthropic API ---
+ANTHROPIC_API_KEY=sk-ant-api03-your-key-here
+
+# --- If using OpenAI ---
+OPENAI_API_KEY=sk-your-openai-key-here
 
 
 # ============ SLACK (OPTIONAL) ============
@@ -275,7 +304,15 @@ docker run -it --rm \
   --env-file .env \
   -v $(pwd)/.agent_memory:/app/.agent_memory \
   airflow-agent \
-  python -m src.cli interactive
+  python -m src interactive
+
+# Note: If using AWS SSO (AWS_PROFILE in .env), add AWS credentials mount:
+docker run -it --rm \
+  --env-file .env \
+  -v $(pwd)/.agent_memory:/app/.agent_memory \
+  -v ~/.aws:/home/agent/.aws:ro \
+  airflow-agent \
+  python -m src interactive
 
 # Run proactive monitoring (background)
 docker run -d \
@@ -284,7 +321,9 @@ docker run -d \
   -v $(pwd)/.agent_memory:/app/.agent_memory \
   --restart unless-stopped \
   airflow-agent \
-  python -m src.cli proactive --interval 15
+  python -m src proactive --interval 15
+
+# Note: Add AWS credentials mount for SSO: -v ~/.aws:/home/agent/.aws:ro
 
 # View logs
 docker logs -f airflow-agent
@@ -594,3 +633,52 @@ See the main [README.md](README.md) for:
 **Questions?** Open an issue or check the documentation in `docs/` folder.
 
 Happy monitoring! 🤖✨
+
+### Using AWS SSO (Recommended for Enterprise)
+
+If your organization uses AWS SSO, follow these steps:
+
+```bash
+# 1. Configure AWS SSO (if not already done)
+aws configure sso
+# Enter your SSO start URL and region
+# Select the account and role
+# Name the profile (e.g., "sso-bedrock")
+
+# 2. Verify SSO login
+aws sso login --profile sso-bedrock
+
+# 3. Test Bedrock access
+aws bedrock list-foundation-models --region eu-west-1 --profile sso-bedrock | grep claude
+
+# 4. In your .env file, set:
+AWS_PROFILE=sso-bedrock
+AWS_REGION=eu-west-1  # or your region
+
+# Leave AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY blank when using SSO
+```
+
+**Benefits of AWS SSO:**
+- ✅ No long-lived credentials to manage
+- ✅ Automatic credential rotation
+- ✅ Better security and compliance
+- ✅ Single sign-on across AWS accounts
+
+**Important for Docker Users:**
+
+When using AWS SSO with Docker, you must mount your host's AWS credentials directory into the container:
+
+```bash
+# Add this volume mount to your docker run command:
+-v ~/.aws:/home/agent/.aws:ro
+
+# Full example:
+docker run -it --rm \
+  --env-file .env \
+  -v $(pwd)/.agent_memory:/app/.agent_memory \
+  -v ~/.aws:/home/agent/.aws:ro \
+  airflow-intelligence-agent \
+  python -m src interactive
+```
+
+This allows the Docker container to access your SSO credentials. Make sure to run `aws sso login --profile sso-bedrock` before starting the container if your session has expired.

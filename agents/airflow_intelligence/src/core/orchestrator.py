@@ -47,12 +47,9 @@ class AgentOrchestrator:
         """
         self.config = config
 
-        # Initialize the agent
+        # Initialize the agent with LLM provider
         logger.info("Initializing AI agent...")
-        self.agent = create_agent(model_id=config.model_id, region=config.aws_region)
-
-        # Override max_iterations if specified
-        self.agent.max_iterations = max_iterations
+        self.agent = create_agent(config=config)
 
         # Initialize tools
         logger.info("Initializing tool registry...")
@@ -168,8 +165,8 @@ class AgentOrchestrator:
                 )
 
             try:
-                # Agent thinks (calls Bedrock)
-                response = self.agent._call_bedrock()
+                # Agent thinks (calls LLM provider)
+                response = self.agent._call_llm()
 
                 # Check if agent wants to use tools
                 if self.agent._has_tool_use(response):
