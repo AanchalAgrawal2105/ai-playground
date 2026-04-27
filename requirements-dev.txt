@@ -2,7 +2,7 @@
 # Shared across all agents in the repository
 
 # Testing
-pytest>=7.4.0
+pytest>=7.4.4
 pytest-asyncio>=0.21.0
 pytest-mock>=3.11.0
 pytest-cov>=4.1.0
